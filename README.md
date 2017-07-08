@@ -1,4 +1,4 @@
 # Borlay.Iota.Library
-.net core library for IOTA wallets. More info coming soon.
+.netStandard 1.4 library for IOTA wallets. More info coming soon.
 
-Related library for .net 4.0+ here: https://github.com/iotaledger/iota.lib.csharp
+Related project here: https://github.com/iotaledger/iota.lib.csharp
