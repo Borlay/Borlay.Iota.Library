@@ -1,7 +1,11 @@
 # Borlay.Iota.Library
 .netStandard 1.4 library for IOTA wallets.
 
+## Nuget
 
+```PowerShell
+Install-Package Borlay.Iota.Library
+```
 
 ## Getting started
 
@@ -47,10 +51,5 @@ var transfer = new TransferItem()
 var transactionItem = await api.SendTransfer(transfer, "YOURSEED", 0, CancellationToken.None);
 ```
 
-## Nuget
-
-```PowerShell
-Install-Package Borlay.Iota.Library
-```
 
 Related project here: https://github.com/iotaledger/iota.lib.csharp
