@@ -36,11 +36,6 @@ namespace Borlay.Iota.Library
         public IriApi IriApi => iriApi;
 
         /// <summary>
-        /// Gets or sets ExceptionHandler
-        /// </summary>
-        public ITransactionHandler ExceptionHandler { get; set; }
-
-        /// <summary>
         /// Gets the Url
         /// </summary>
         public string Url => iriApi.WebClient.Url;
