@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26430.15
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Borlay.Iota.Library", "Borlay.Iota.Library\Borlay.Iota.Library.csproj", "{0492A4BD-7D88-4445-B21C-2BBC02D6F267}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Borlay.Iota.Library", "Borlay.Iota.Library\Borlay.Iota.Library.csproj", "{0492A4BD-7D88-4445-B21C-2BBC02D6F267}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Borlay.Iota.Library.Tests", "Borlay.Iota.Library.Tests\Borlay.Iota.Library.Tests.csproj", "{A1A37EAF-9604-42B9-9C3A-26CE1BB29EE6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Borlay.Iota.Library.Tests", "Borlay.Iota.Library.Tests\Borlay.Iota.Library.Tests.csproj", "{A1A37EAF-9604-42B9-9C3A-26CE1BB29EE6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

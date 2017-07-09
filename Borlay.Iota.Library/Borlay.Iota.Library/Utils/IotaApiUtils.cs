@@ -44,7 +44,6 @@ namespace Borlay.Iota.Library.Utils
             var elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
                 ts.Hours, ts.Minutes, ts.Seconds,
                 ts.Milliseconds / 10);
-            Console.WriteLine(elapsedTime);
             cancellationToken.ThrowIfCancellationRequested();
 
             int[] digests = signing.Digests(privateKey);
@@ -53,7 +52,6 @@ namespace Borlay.Iota.Library.Utils
             elapsedTime = String.Format("After Digest {0:00}:{1:00}:{2:00}.{3:00}",
                 ts.Hours, ts.Minutes, ts.Seconds,
                 ts.Milliseconds / 10);
-            Console.WriteLine(elapsedTime);
             cancellationToken.ThrowIfCancellationRequested();
 
             int[] addressTrits = signing.Address(digests);
@@ -61,7 +59,6 @@ namespace Borlay.Iota.Library.Utils
             elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
                 ts.Hours, ts.Minutes, ts.Seconds,
                 ts.Milliseconds / 10);
-            Console.WriteLine(elapsedTime);
             cancellationToken.ThrowIfCancellationRequested();
 
             string address = Converter.ToTrytes(addressTrits);
