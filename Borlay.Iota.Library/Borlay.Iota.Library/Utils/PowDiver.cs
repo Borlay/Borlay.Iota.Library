@@ -1,7 +1,10 @@
-﻿using System;
+﻿using Borlay.Iota.Library.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Borlay.Iota.Library.Utils
 {
@@ -45,33 +48,27 @@ namespace Borlay.Iota.Library.Utils
 
 
 
-        public string AddAproveeTransactions(string trytes, string trunkTransaction, string branchTransaction)
-        {
-            var trytesConstruct = trytes.Substring(0, 2430);
-            trytesConstruct += trunkTransaction;
-            trytesConstruct += branchTransaction;
-            trytesConstruct += EmptyHash();
 
-            return trytesConstruct;
+
+        public string DoPow(string trytes, int minWeightMagnitude)
+        {
+            return DoPow(trytes, minWeightMagnitude, CancellationToken.None);
         }
 
-        private string EmptyHash()
+        public string DoPow(string trytes, int minWeightMagnitude, CancellationToken CancellationToken)
         {
-            var emptyHash = new string(Enumerable.Repeat('9', 81).ToArray());
-            return emptyHash;
-        }
-
-        public string DoPow(string trytes, string trunk, string branch, int minWeightMagnitude)
-        {
-            var tryt = AddAproveeTransactions(trytes, trunk, branch);
-
-            var intxTrits = Library.Utils.Converter.ToTrits(tryt);//AddAproveeTransactions(intx, trunk, branch));
-            var result = search(intxTrits, minWeightMagnitude, 1);
+            var intxTrits = Library.Utils.Converter.ToTrits(trytes);
+            var result = search(intxTrits, minWeightMagnitude, 1, CancellationToken);
             var resultTrytes = Utils.Converter.ToTrytes(intxTrits);
             return resultTrytes;
         }
-
         public bool search(int[] transactionTrits, int minWeightMagnitude, int numberOfThreads)
+        {
+            return search(transactionTrits, minWeightMagnitude, numberOfThreads, CancellationToken.None);
+        }
+
+
+        public bool search(int[] transactionTrits, int minWeightMagnitude, int numberOfThreads, CancellationToken CancellationToken)
         {
 
             if (transactionTrits.Length != TRANSACTION_LENGTH)
@@ -180,7 +177,7 @@ namespace Borlay.Iota.Library.Utils
                     ulong mask, outMask = 1;
                     while (state == RUNNING)
                     {
-
+                        CancellationToken.ThrowIfCancellationRequested();
                         increment(midCurlStateCopyLow, midCurlStateCopyHigh, (CURL_HASH_LENGTH / 3) * 2, CURL_HASH_LENGTH);
                         System.Array.Copy(midCurlStateCopyLow, 0, curlStateLow, 0, CURL_STATE_LENGTH);
                         System.Array.Copy(midCurlStateCopyHigh, 0, curlStateHigh, 0, CURL_STATE_LENGTH);

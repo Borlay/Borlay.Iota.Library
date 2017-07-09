@@ -14,6 +14,11 @@ namespace Borlay.Iota.Library
 {
     public class IotaApi
     {
+        /// <summary>
+        /// Gets or sets MaxAddressIndex. Default is 500.
+        /// </summary>
+        public int MaxAddressIndex { get; set; }
+
         private readonly IriApi iriApi;
 
         /// <summary>
@@ -31,8 +36,8 @@ namespace Borlay.Iota.Library
         /// </summary>
         public string Url => iriApi.WebClient.Url;
 
-        public IotaApi(string url)
-            : this(new IriApi(url))
+        public IotaApi(string url, int minWeightMagnitude = 15)
+            : this(new IriApi(url) { MinWeightMagnitude = 15 })
         {
         }
 
@@ -42,6 +47,7 @@ namespace Borlay.Iota.Library
                 throw new ArgumentNullException(nameof(iriApi));
 
             this.iriApi = iriApi;
+            this.MaxAddressIndex = 500;
         }
 
         /// <summary>
@@ -157,7 +163,7 @@ namespace Borlay.Iota.Library
 
         public async Task<AddressItem> FindReminderAddress(string seed, int startFromIndex, CancellationToken cancellationToken)
         {
-            for (int i = startFromIndex; i < 500; i += 10)
+            for (int i = startFromIndex; i < MaxAddressIndex; i += 10)
             {
                 var addressItems = await GetAddresses(seed, i, 10, cancellationToken);
                 foreach (var addressItem in addressItems)
@@ -176,7 +182,7 @@ namespace Borlay.Iota.Library
         {
             long totalBalance = 0;
             List<AddressItem> addressList = new List<AddressItem>();
-            for (int i = startFromIndex; i < 500; i += 10)
+            for (int i = startFromIndex; i < MaxAddressIndex; i += 10)
             {
                 var addressItems = await GetAddresses(seed, i, 10, cancellationToken);
                 if (addressItems.All(a => !a.HasTransactions))

@@ -15,6 +15,16 @@ namespace Borlay.Iota.Library.Iri
         private readonly IGenericWebClient genericClient;
 
         /// <summary>
+        /// Gets or sets the MinWeightMagnitude. Default is 15
+        /// </summary>
+        public int MinWeightMagnitude { get; set; }
+
+        /// <summary>
+        /// Gets or sets the TransactionApproveDepth. Default is 9
+        /// </summary>
+        public int TransactionApproveDepth { get; set; }
+
+        /// <summary>
         /// Gets the WebClient
         /// </summary>
         public IGenericWebClient WebClient => genericClient;
@@ -30,25 +40,27 @@ namespace Borlay.Iota.Library.Iri
                 throw new ArgumentNullException(nameof(genericClient));
 
             this.genericClient = genericClient;
+            this.MinWeightMagnitude = 15;
+            this.TransactionApproveDepth = 9;
         }
 
         public async Task<string[]> AttachToTangle(
-            string[] trytes, CancellationToken cancellationToken, int minWeightMagnitude = 15)
+            string[] trytes, CancellationToken cancellationToken)
         {
-            var transactionsToApprove = await GetTransactionsToApprove(9);
+            var transactionsToApprove = await GetTransactionsToApprove(TransactionApproveDepth);
             return await AttachToTangle(trytes,
                 transactionsToApprove.TrunkTransaction, transactionsToApprove.BranchTransaction, 
-                cancellationToken, minWeightMagnitude);
+                cancellationToken);
         }
 
             public async Task<string[]> AttachToTangle(string[] trytes, 
-                string trunkTransaction, string branchTransaction, CancellationToken cancellationToken, int minWeightMagnitude = 15)
+                string trunkTransaction, string branchTransaction, CancellationToken cancellationToken)
         {
             InputValidator.CheckIfArrayOfTrytes(trytes);
 
             AttachToTangleRequest attachToTangleRequest = new AttachToTangleRequest(
                 trunkTransaction, branchTransaction,
-                trytes, minWeightMagnitude);
+                trytes, MinWeightMagnitude);
             var response = await genericClient.RequestAsync<AttachToTangleResponse>(attachToTangleRequest, cancellationToken);
             if (response == null)
                 throw new NullReferenceException(nameof(response));

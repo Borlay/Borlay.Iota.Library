@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -16,6 +17,8 @@ namespace Borlay.Iota.Library.Tests
     {
         public const string TestSeed = "VP9MTUWYVYWJRGYYEQXPLRCYKM9KJYZPFEGYNDJTLGDEHRJDOLIFCBMSTFRBTZVTIWJVVFQFI9YZMY99B";
         public const string TestSeedForConfirm = "VP9MTUWYVYWJRGYYEMXPLRCYKM9KJYZPFEGYNKJTLGDEHRJDOLIFABMSTFRBTZUTIWJVVFQFI9YZMY99B";
+
+        public const string TestSeed2 = "VP9MTUWYVYPJRGYYEQNPLRCYKM9KJYZPFEGYNDJTLGDEHRJDOLIFCBMSTFRBTZVTIWJVVFQFI9YZMY99B";
 
 
         [TestMethod]
@@ -73,7 +76,7 @@ namespace Borlay.Iota.Library.Tests
 
             var api = CreateIotaClient();
             var trytes = new string[] { outtx };
-            var trytesResult = await api.IriApi.AttachToTangle(trytes, trunk, branch, CancellationToken.None, 15);
+            var trytesResult = await api.IriApi.AttachToTangle(trytes, trunk, branch, CancellationToken.None);
 
             Assert.AreEqual(outtx, trytesResult.First());
         }
@@ -88,7 +91,7 @@ namespace Borlay.Iota.Library.Tests
 
             var api = CreateIotaClient();
             var trytes = new string[] { outtx };
-            var trytesResult = await api.IriApi.AttachToTangle(trytes, trunk, branch, CancellationToken.None, 15);
+            var trytesResult = await api.IriApi.AttachToTangle(trytes, trunk, branch, CancellationToken.None);
 
             Assert.AreEqual(outtx, trytesResult.First());
         }
@@ -99,7 +102,7 @@ namespace Borlay.Iota.Library.Tests
         {
             var api = CreateIotaClient();
             //10000000
-            var address = await api.GetAddress(TestSeed, 140);
+            var address = await api.GetAddress(TestSeed2, 1);
 
             var transfer = new TransferItem()
             {
@@ -108,13 +111,16 @@ namespace Borlay.Iota.Library.Tests
                 Message = "MESSAGETEST",
                 Tag = "TAGTEST"
             };
-            var transactions = transfer.CreateTransactions();
-            var trytes = transactions.GetTrytes();
 
-            var trytesResult = await api.SendTrytes(trytes, CancellationToken.None);
-            //var trytesResult2 = await api.SendTrytes(trytesResult, CancellationToken.None);
+            var transactionItem = await api.SendTransfer(transfer, CancellationToken.None);
 
-            var broadcastUrls = BroadcastUrls();
+            //var transactions = transfer.CreateTransactions();
+            //var trytes = transactions.GetTrytes();
+
+            //var trytesResult = await api.SendTrytes(trytes, CancellationToken.None);
+            ////var trytesResult2 = await api.SendTrytes(trytesResult, CancellationToken.None);
+
+            //var broadcastUrls = BroadcastUrls();
             //await broadcastUrls.ParallelAsync(async u =>
             //{
             //    await Task.Yield();
@@ -138,6 +144,228 @@ namespace Borlay.Iota.Library.Tests
             //    tasks.Add(task);
             //}
             //await Task.WhenAll(tasks);
+        }
+
+
+        [TestMethod]
+        public async Task SendEmptyTransferWithPowTest()
+        {
+            var api = CreateIotaClient();
+            var address = await api.GetAddress(TestSeed2, 20);
+            var transfer = new TransferItem()
+            {
+                Address = address.Address,
+                Value = 0,
+                Message = "THEMESSAGETEST",
+                Tag = "THETAGTEST"
+            };
+
+            while (true)
+            {
+                try
+                {
+                    Console.WriteLine("Do pow and send");
+                    CancellationTokenSource cts = new CancellationTokenSource();
+
+                    var transactions = transfer.CreateTransactions();
+                    var trytesToPow = transactions.GetTrytes().Single();
+                    var toApprove = await api.IriApi.GetTransactionsToApprove(9);
+                    var diver = new PowDiver();
+                    cts.CancelAfter(15000); //
+                    var trytesToSend = diver.DoPow(trytesToPow.ApproveTransactions(toApprove.TrunkTransaction, toApprove.BranchTransaction), 15, cts.Token);
+                    //Thread.Sleep(200000);
+                    await api.IriApi.BroadcastTransactions(trytesToSend);
+                    await api.IriApi.StoreTransactions(trytesToSend);
+
+                    var transaction = new TransactionItem(trytesToSend);
+
+                    break;
+                }
+                catch (OperationCanceledException)
+                {
+                    continue;
+                }
+            }
+        }
+
+        [TestMethod]
+        public async Task SendVeryEmptyTransactionTest()
+        {
+            var api = CreateIotaClient();
+
+            var emptyAddress = IotaApiUtils.GenerateRandomTrytes(81); // "".Pad(81);
+
+            var transfer = new TransferItem()
+            {
+                Address = emptyAddress,
+                Value = 0,
+                Message = "",
+                Tag = ""
+            };
+
+            while (true)
+            {
+                try
+                {
+                    CancellationTokenSource cts = new CancellationTokenSource();
+
+                    var transactions = transfer.CreateTransactions();
+                    var trytesToPow = transactions.GetTrytes().Single();
+                    var toApprove = await api.IriApi.GetTransactionsToApprove(9);
+                    var diver = new PowDiver();
+                    //cts.CancelAfter(15000); 
+                    var trunk = toApprove.TrunkTransaction;
+                    var branch = toApprove.BranchTransaction;
+
+
+                    var trytesToSend = diver.DoPow(trytesToPow.ApproveTransactions(trunk, branch), 15, cts.Token);
+
+                    await api.IriApi.BroadcastTransactions(trytesToSend);
+                    await api.IriApi.StoreTransactions(trytesToSend);
+
+                    var transaction = new TransactionItem(trytesToSend);
+                }
+                catch (OperationCanceledException)
+                {
+                    continue;
+                }
+            }
+        }
+
+        [TestMethod]
+        public async Task ApproveAnyTransactionFast()
+        {
+            // "EWIMRMDVLWJOS9BCMZCOLHJJIJUMCHVSEQSNPHHMMY9OCZFSJ9L9DBCLVZXCPYUUKYQWOEPYVLWG99999"
+
+            // "LIIAMJACMXDCWTFRRZMRBZHBGDRACVIJGEFZSPCUISBDEFLZSWB9QBXACPCC9VIUAWSJRUOFLPBC99999";
+
+            string tranHash = "JWVFWNKBOIH9SVOZENCADOUJSQWOLVTZWTPBFJIBSJAUEMHYYJKDRYHCK99HOKHDXBAHHGTOA9PW99999";
+
+            Stopwatch watch = Stopwatch.StartNew();
+
+            var task1 = ApproveTransaction(tranHash, ApproveTransactionType.Trunk);
+            var task2 = ApproveTransaction(tranHash, ApproveTransactionType.Branch);
+
+            var tran1 = await task1;
+            var tran2 = await task2;
+
+            //var task1 = await Enumerable.Range(0, 8).ParallelAnyAsync(async
+            //    (i) => await ApproveTransaction(tranHash, ApproveTransactionType.Trunk));
+
+            //var task2 = await Enumerable.Range(0, 8).ParallelAnyAsync(async
+            //    (i) => await ApproveTransaction(tranHash, ApproveTransactionType.Branch));
+
+            //var tran1 = await task1;
+            //var tran2 = await task2;
+
+            watch.Stop();
+
+        }
+
+        public enum ApproveTransactionType
+        {
+            Trunk,
+            Branch
+        }
+
+
+
+        public async Task<string> ApproveTransaction(string transactionHash, ApproveTransactionType approveType)
+        {
+            var api = CreateIotaClient();
+            //var address = await api.GetAddress(TestSeed2, 8);
+
+            var emptyAddress = IotaApiUtils.GenerateRandomTrytes(81); // "".Pad(81);
+
+            var transfer = new TransferItem()
+            {
+                Address = emptyAddress,
+                Value = 0,
+                Message = "",
+                Tag = ""
+            };
+
+            while (true)
+            {
+                try
+                {
+                    CancellationTokenSource cts = new CancellationTokenSource();
+
+                    var transactions = transfer.CreateTransactions();
+                    var trytesToPow = transactions.GetTrytes().Single();
+                    var toApprove = await api.IriApi.GetTransactionsToApprove(9);
+                    var diver = new PowDiver();
+                    cts.CancelAfter(20000);
+                    var trunk = toApprove.TrunkTransaction;
+                    var branch = toApprove.BranchTransaction;
+
+                    if (approveType == ApproveTransactionType.Trunk)
+                        trunk = transactionHash;
+                    else
+                        branch = transactionHash;
+
+                    var trytesToSend = diver.DoPow(trytesToPow.ApproveTransactions(trunk, branch), 15, cts.Token);
+
+                    await api.IriApi.BroadcastTransactions(trytesToSend);
+                    await api.IriApi.StoreTransactions(trytesToSend);
+
+                    var transaction = new TransactionItem(trytesToSend);
+
+                    return transaction.Hash;
+                }
+                catch (OperationCanceledException)
+                {
+                    continue;
+                }
+            }
+        }
+
+        public Task<string> Rebroadcast(string trytes)
+        {
+            return Rebroadcast(trytes, CancellationToken.None);
+        }
+
+        public async Task<string> Rebroadcast(string trytes, CancellationToken cancellationToken)
+        {
+            var api = CreateIotaClient();
+
+            while (true)
+            {
+                try
+                {
+                    CancellationTokenSource cts = new CancellationTokenSource();
+                    cts.Token.Register(() => cts.Cancel());
+
+                    var toApprove = await api.IriApi.GetTransactionsToApprove(9);
+                    var diver = new PowDiver();
+                    cts.CancelAfter(15000);
+
+                    var trunk = toApprove.TrunkTransaction;
+                    var branch = toApprove.BranchTransaction;
+
+
+
+                    trytes = trytes.ApproveBranch(trunk);
+                    var trytesToSend = diver.DoPow(trytes, 15, cts.Token);
+
+                    if (cts.IsCancellationRequested)
+                        continue;
+
+                    await api.IriApi.BroadcastTransactions(trytesToSend);
+                    await api.IriApi.StoreTransactions(trytesToSend);
+
+                    var transaction = new TransactionItem(trytesToSend);
+
+                    return transaction.Hash;
+                }
+                catch (OperationCanceledException)
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                        throw;
+
+                    continue;
+                }
+            }
         }
 
 
@@ -177,49 +405,88 @@ namespace Borlay.Iota.Library.Tests
             await api.IriApi.AttachToTangle(trytesRec, toApprove.TrunkTransaction, transactionHash, CancellationToken.None);
         }
 
+        [TestMethod]
+        public async Task ForceApproveTransaction(string transactionHash)
+        {
+            //var t = "ROOLNRKPZTBWELDVVTP9EFV9ZBETLJNILQBZOPZNVXAGFUWULYKCPYEMKZZAHWCNYCQMWVYXGBWO99999";
+            //var t2 = "MQTRQLVFSFNZJZUHMPYMO9MMZSOWQTYSAJIODNFVIXZRQIZEOQXMMGXXJPBJGSFVKIIOMNEQBFDZ99999";
+            //var t3 = "LMEANDNWRTFSBTQTMQOCIPICIO9GTPYJYYQLPIVHMKBWLEFROUV9CPIHFVYXJFVIXIKWD9SSIHMV99999";
+
+            var trunked = await ApproveTransaction(transactionHash, ApproveTransactionType.Trunk);
+            var branched = await ApproveTransaction(transactionHash, ApproveTransactionType.Branch);
+
+            await ForceApproveTransaction(trunked);
+            await ForceApproveTransaction(branched);
+
+        }
+
 
         [TestMethod]
         public async Task DoPowAndSendTransactionWithValueTest()
         {
             var api = CreateIotaClient();
-            var addresses = await api.GetAddresses(TestSeed, 100, 3, CancellationToken.None);
-            var transferRecon = new TransferItem()
+            var addresses = await api.GetAddresses(TestSeed, 103, 3, CancellationToken.None);
+            var transfer = new TransferItem()
             {
                 Address = addresses[1].Address,
                 Value = 10000000,
                 Message = "MESSAGETESTVALUEPOW",
                 Tag = "TAGTESTVALUEPOW"
             };
-            var transactionsRec = transferRecon.CreateTransactions(addresses[2].Address, addresses.First());
-            var trytesRec = transactionsRec.GetTrytes();
-            var toApprove = await api.IriApi.GetTransactionsToApprove(9);
 
-            ConcurrentBag<Tuple<string, int>> trytesBag = new ConcurrentBag<Tuple<string, int>>();
-            Parallel.For(0, trytesRec.Count(), i =>
-            {
-                var diver = new PowDiver();
-                var tr = diver.DoPow(trytesRec[i], toApprove.TrunkTransaction, toApprove.BranchTransaction, 15);
-                trytesBag.Add(new Tuple<string, int>(tr, i));
-            });
-            var trytesToSend = trytesBag.OrderByDescending(i => i.Item2).Select(i => i.Item1).ToArray();
-
-            int broadcastCount = 0;
-            var broadcastUrls = BroadcastUrls();
-            await broadcastUrls.ParallelAsync(async u =>
+            while (true)
             {
                 try
                 {
+                    CancellationTokenSource cts = new CancellationTokenSource();
+
+                    var transactionItems = transfer.CreateTransactions(addresses[2].Address, addresses.First());
+                    var transactionTrytes = transactionItems.GetTrytes();
+                    var toApprove = await api.IriApi.GetTransactionsToApprove(9);
+
+                    var trunk = toApprove.TrunkTransaction;
+                    var branch = toApprove.BranchTransaction;
+
+                    var trytesToSend = transactionTrytes.DoPow(trunk, branch, 15, cts.Token);
+
+                    //ConcurrentBag<Tuple<string, int>> trytesBag = new ConcurrentBag<Tuple<string, int>>();
+
+                    //var lastSetTrunk = trunk;
+
+                    //for (int i = 0; i < trytesRec.Length; i++)
+                    //{
+                    //    if (i == 0)
+                    //        branch = toApprove.BranchTransaction;
+                    //    else
+                    //        branch = toApprove.TrunkTransaction;
+
+                    //    var diver = new PowDiver();
+                    //    var trytes = diver.DoPow(trytesRec[i], trunk, branch, 15, cts.Token);
+                    //    var transaction = new TransactionItem(trytes);
+                    //    trunk = transaction.Hash;
+
+                    //    trytesBag.Add(new Tuple<string, int>(trytes, i));
+                    //}
+
+
+                    //var trytesToSend = trytesBag.OrderBy(i => i.Item2).Select(i => i.Item1).ToArray();
                     await api.IriApi.BroadcastTransactions(trytesToSend);
                     await api.IriApi.StoreTransactions(trytesToSend);
-                    Interlocked.Increment(ref broadcastCount);
+
+                    var firstTrytes = trytesToSend.Last();
+
+                    var transactionItem = new TransactionItem(firstTrytes);
+                    var rebroadcastTransactionHash = await Rebroadcast(firstTrytes);
+
+
+
+                    break;
                 }
-                catch(Exception e)
+                catch (AggregateException)
                 {
-
+                    continue;
                 }
-            });
-
-            Assert.IsTrue(broadcastCount > 0);
+            }
         }
 
         //[TestMethod]
@@ -313,7 +580,8 @@ namespace Borlay.Iota.Library.Tests
             // "http://node.iotawallet.info:14265"
             // "http://node.deviceproof.org:14265"
             // "http://88.198.230.98:14265"
-            return new IotaApi("http://node.iotawallet.info:14265");
+            // "http://iota.digits.blue:14265"
+            return new IotaApi("http://iota.digits.blue:14265");
         }
 
         private IEnumerable<string> BroadcastUrls()
@@ -341,6 +609,18 @@ namespace Borlay.Iota.Library.Tests
                 tasks.Add(task);
             }
             await Task.WhenAll(tasks);
+        }
+
+        public static async Task<TResult> ParallelAnyAsync<T, TResult>(this IEnumerable<T> enumerable, Func<T, Task<TResult>> action)
+        {
+            var tasks = new List<Task<TResult>>();
+            foreach (var e in enumerable)
+            {
+                var task = action(e);
+                tasks.Add(task);
+            }
+            var t = await Task.WhenAny<TResult>(tasks);
+            return await t;
         }
     }
 }

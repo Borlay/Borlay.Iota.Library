@@ -107,7 +107,8 @@ namespace Borlay.Iota.Library.Utils
 
         internal static long CreateTimeStampNow()
         {
-            return (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalMilliseconds;
+            var timestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalMilliseconds;
+            return timestamp; // 1499592594121;
         }
     }
 }

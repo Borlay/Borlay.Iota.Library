@@ -12,6 +12,29 @@ namespace Borlay.Iota.Library
 {
     public static class IotaExtensions
     {
+        /// <summary>
+        /// Sends transfer with money.
+        /// </summary>
+        /// <param name="api"></param>
+        /// <param name="transferItem">Transfer item to send</param>
+        /// <param name="seed">Seed from which you want to send money.</param>
+        /// <param name="startFromIndex">Index to start search for address</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns></returns>
+        public static async Task<TransactionItem[]> SendTransfer(this IotaApi api, TransferItem transferItem, string seed, int startFromIndex, CancellationToken cancellationToken)
+        {
+            var transactionItemsToSend = await api.CreateTransactions(transferItem, seed, startFromIndex, cancellationToken);
+            var transactionItems = await api.SendTransactions(transactionItemsToSend, cancellationToken);
+            return transactionItems;
+        }
+
+        /// <summary>
+        /// Sends transfer without money
+        /// </summary>
+        /// <param name="api"></param>
+        /// <param name="transferItem">Transfer item</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns></returns>
         public static Task<TransactionItem[]> SendTransfer(this IotaApi api, TransferItem transferItem, CancellationToken cancellationToken)
         {
             var transactionItems = transferItem.CreateTransactions();
@@ -29,6 +52,9 @@ namespace Borlay.Iota.Library
 
         private static IEnumerable<string> ChunksUpto(string str, int maxChunkSize)
         {
+            if (string.IsNullOrWhiteSpace(str))
+                yield return string.Empty;
+
             for (int i = 0; i < str.Length; i += maxChunkSize)
                 yield return str.Substring(i, Math.Min(maxChunkSize, str.Length - i));
         }
@@ -60,12 +86,15 @@ namespace Borlay.Iota.Library
             }
         }
 
-        private static IEnumerable<TransactionItem> CreateWithdrawalTransactions(long withdrawAmount, string reminderAddress, params AddressItem[] addressItems)
+        private static IEnumerable<TransactionItem> CreateWithdrawalTransactions(string tag, long withdrawAmount, string reminderAddress, params AddressItem[] addressItems)
         {
             if (string.IsNullOrWhiteSpace(reminderAddress))
                 throw new ArgumentNullException(nameof(reminderAddress));
 
             var curl = new Curl();
+
+            tag = tag ?? Constants.EmptyTag;
+            while (tag.Length < 27) tag += '9';
 
             foreach (var addressItem in addressItems)
             {
@@ -82,6 +111,7 @@ namespace Borlay.Iota.Library
                     Address = addressItem.Address,
                     Value = (-amount).ToString(), // withdraw all amount
                     Timestamp = timestamp,
+                    Tag = tag
                 };
                 yield return transactionItem;
 
@@ -90,8 +120,11 @@ namespace Borlay.Iota.Library
                     Address = addressItem.Address,
                     Value = "0",
                     Timestamp = timestamp,
+                    Tag = tag
                 };
                 yield return transactionItem;
+
+                
 
                 if (withdrawAmount < 0) // deposit remind amount to reminder address
                 {
@@ -103,7 +136,8 @@ namespace Borlay.Iota.Library
                         Address = reminderAddress,
                         Value = Math.Abs(withdrawAmount).ToString(),
                         Timestamp = timestamp,
-                        SignatureFragment = message
+                        SignatureFragment = message,
+                        Tag = tag
                     };
                     yield return transactionItem;
                 }
@@ -137,7 +171,7 @@ namespace Borlay.Iota.Library
             TransactionItem[] withdrawalTransactions = null;
             if (needBalance > 0)
             {
-                withdrawalTransactions = CreateWithdrawalTransactions(needBalance, remainderAddress, fromAddressItems)
+                withdrawalTransactions = CreateWithdrawalTransactions(transferItem.Tag, needBalance, remainderAddress, fromAddressItems)
                     .ToArray();
             }
 
@@ -159,6 +193,69 @@ namespace Borlay.Iota.Library
                 throw new IotaException($"Total transactions balance should be zero. Current is '{transactionsBalance}'. There is some bug in code.");
 
             return transactions.ToArray();
+        }
+
+        public static string[] DoPow(this string[] trytes, string trunkTransaction, string branchTransaction, int minWeightMagnitude, CancellationToken cancellationToken)
+        {
+            var trunk = trunkTransaction;
+            var branch = branchTransaction;
+
+            List<string> resultTrytes = new List<string>();
+            for (int i = 0; i < trytes.Length; i++)
+            {
+                if (i == 0)
+                    branch = branchTransaction;
+                else
+                    branch = trunkTransaction;
+
+                var tryte = trytes[i];
+                tryte = tryte.ApproveTransactions(trunk, branch);
+
+                var diver = new PowDiver();
+                var tryteWithNonce = diver.DoPow(tryte, minWeightMagnitude, cancellationToken);
+                var transaction = new TransactionItem(tryteWithNonce);
+                trunk = transaction.Hash;
+
+                resultTrytes.Add(tryteWithNonce);
+            }
+            return resultTrytes.ToArray();
+        }
+
+        public static string Pad(this string value, int size)
+        {
+            var pad = value ?? "";
+            while (pad.Length < size) pad += '9';
+            return pad;
+        }
+
+        public static string ApproveTransactions(this string trytes, string trunkTransaction, string branchTransaction)
+        {
+            var trytesConstruct = trytes.Substring(0, 2430);
+            trytesConstruct += trunkTransaction;
+            trytesConstruct += branchTransaction;
+            trytesConstruct += EmptyHash();
+
+            return trytesConstruct;
+        }
+
+        public static string ApproveBranch(this string trytes, string branchTransaction)
+        {
+            var trytesConstruct = trytes.Substring(0, 2430 + 81);
+            trytesConstruct += branchTransaction;
+            trytesConstruct += EmptyHash();
+
+            return trytesConstruct;
+        }
+
+        public static string GetTrunkTransaction(this string trytes)
+        {
+            return trytes.Substring(2430, 81);
+        }
+
+        public static string EmptyHash(int length = 81)
+        {
+            var emptyHash = new string(Enumerable.Repeat('9', 81).ToArray());
+            return emptyHash;
         }
     }
 }
