@@ -19,6 +19,15 @@ namespace Borlay.Iota.Library
         /// </summary>
         public int MaxAddressIndex { get; set; }
 
+        public int NumberOfThreads { get; set; }
+
+        public int Depth { get; set; }
+
+        /// <summary>
+        /// In milliseconds
+        /// </summary>
+        public int RebroadcastMaximumPowTime { get; set; }
+
         private readonly IriApi iriApi;
 
         /// <summary>
@@ -37,7 +46,7 @@ namespace Borlay.Iota.Library
         public string Url => iriApi.WebClient.Url;
 
         public IotaApi(string url, int minWeightMagnitude = 15)
-            : this(new IriApi(url) { MinWeightMagnitude = 15 })
+            : this(new IriApi(url) { MinWeightMagnitude = minWeightMagnitude })
         {
         }
 
@@ -48,6 +57,9 @@ namespace Borlay.Iota.Library
 
             this.iriApi = iriApi;
             this.MaxAddressIndex = 500;
+            this.NumberOfThreads = 0;
+            this.Depth = 9;
+            this.RebroadcastMaximumPowTime = 20000;
         }
 
         /// <summary>
@@ -89,7 +101,7 @@ namespace Borlay.Iota.Library
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var renewBalances = addressItems.Where(a => a.HasTransactions).ToArray();
+            var renewBalances = addressItems.Where(a => a.TransactionCount > 0).ToArray();
             if (renewBalances.Length > 0)
                 await RenewBalances(renewBalances);
 
@@ -109,11 +121,10 @@ namespace Borlay.Iota.Library
                 Address = address,
                 PrivateKey = key,
                 Index = index,
-                HasTransactions = false,
                 Balance = 0
             };
 
-            await RenewHasTransaction(addressItem);
+            await RenewTransactions(addressItem);
 
             return addressItem;
         }
@@ -123,15 +134,50 @@ namespace Borlay.Iota.Library
         /// </summary>
         /// <param name="addressItem">Address item to renew</param>
         /// <returns></returns>
-        public async Task RenewHasTransaction(AddressItem addressItem)
+        public async Task RenewTransactions(AddressItem addressItem)
         {
-            if (!addressItem.HasTransactions) // because once you put in tangle it's always true
+            var transactionHashes = await iriApi.FindTransactionsFromAddresses(addressItem.Address);
+            foreach (var hash in transactionHashes)
             {
-                var transactionHashes = await iriApi.FindTransactionsFromAddresses(addressItem.Address);
-                addressItem.HasTransactions = (transactionHashes?.Length > 0);
+                if (!addressItem.Transactions.Any(t => t.Hash == hash))
+                {
+                    addressItem.Transactions.Add(new TransactionHash() { Hash = hash });
+                }
             }
         }
 
+        /// <summary>
+        /// Gets transactions details and inclusion states by transactions hashes
+        /// </summary>
+        /// <param name="transactionHashes">The transactions hashes</param>
+        /// <returns></returns>
+        public async Task<TransactionItem[]> GetTransactionItems(params string[] transactionHashes)
+        {
+            var transactionTrytes = await iriApi.GetTrytes(transactionHashes);
+            var nodeInfo = await iriApi.GetNodeInfo();
+            var states = await iriApi.GetInclusionStates(transactionHashes, nodeInfo.LatestSolidSubtangleMilestone);
+
+            var transactionItems = transactionTrytes.Select(t => new TransactionItem(t)).ToArray();
+
+            for(int i = 0; i < transactionItems.Length; i++)
+            {
+                transactionItems[i].Persistence = states[i];
+            }
+
+            return transactionItems;
+        }
+        /// <summary>
+        /// Gets transactions details and inclusion states by bundle hash
+        /// </summary>
+        /// <param name="bundleHash"></param>
+        /// <returns></returns>
+        public async Task<TransactionItem[]> GetBundleTransactionItems(string bundleHash)
+        {
+            var transactionHashes = await iriApi.FindTransactions(null, null, null, new string[] { bundleHash });
+            var transactionItems = await GetTransactionItems(transactionHashes);
+            return transactionItems;
+        }
+         
         /// <summary>
         /// Renew address items balances
         /// </summary>
@@ -152,11 +198,11 @@ namespace Borlay.Iota.Library
             var tasks = new List<Task>();
             foreach (var item in addressItems)
             {
-                tasks.Add(RenewHasTransaction(item));
+                tasks.Add(RenewTransactions(item));
             }
             await Task.WhenAll(tasks);
 
-            var renewBalances = addressItems.Where(a => a.HasTransactions).ToArray();
+            var renewBalances = addressItems.Where(a => a.TransactionCount > 0).ToArray();
             if (renewBalances.Length > 0)
                 await RenewBalances(renewBalances);
         }
@@ -168,7 +214,7 @@ namespace Borlay.Iota.Library
                 var addressItems = await GetAddresses(seed, i, 10, cancellationToken);
                 foreach (var addressItem in addressItems)
                 {
-                    if (addressItem.Balance > 0 || !addressItem.HasTransactions)
+                    if (addressItem.Balance > 0 || addressItem.TransactionCount == 0)
                         return addressItem;
                 }
 
@@ -185,7 +231,7 @@ namespace Borlay.Iota.Library
             for (int i = startFromIndex; i < MaxAddressIndex; i += 10)
             {
                 var addressItems = await GetAddresses(seed, i, 10, cancellationToken);
-                if (addressItems.All(a => !a.HasTransactions))
+                if (addressItems.All(a => a.TransactionCount == 0))
                     break;
 
                 foreach (var addressItem in addressItems)
@@ -209,7 +255,7 @@ namespace Borlay.Iota.Library
             return addressList.ToArray();
         }
 
-        
+
         /// <summary>
         /// Finds addresses with balance and finds reminder and creates transaction items
         /// </summary>
@@ -284,33 +330,80 @@ namespace Borlay.Iota.Library
             return transactionResult;
         }
 
+        public async Task<string> Rebroadcast(IEnumerable<TransactionItem> transactionItems, CancellationToken cancellationToken)
+        {
+            var transactionItem = transactionItems.FirstOrDefault(t => t.CurrentIndex == "0");
+
+            if (transactionItem == null)
+                throw new Exception("Transaction with index '0' not found");
+
+            var transactionTrytes = transactionItem.ToTransactionTrytes();
+            var trytesResult = await Rebroadcast(transactionTrytes, cancellationToken);
+            return trytesResult;
+        }
+
+        public async Task<string> Rebroadcast(string trytes, CancellationToken cancellationToken)
+        {
+            while (true)
+            {
+                try
+                {
+                    CancellationTokenSource cts = new CancellationTokenSource();
+                    cancellationToken.Register(() => cts.Cancel());
+
+                    var toApprove = await IriApi.GetTransactionsToApprove(Depth);
+                    var diver = new PowDiver();
+                    cts.CancelAfter(RebroadcastMaximumPowTime);
+
+                    var trunk = toApprove.TrunkTransaction;
+                    var branch = toApprove.BranchTransaction;
+
+
+
+                    trytes = trytes.SetApproveBranch(trunk);
+                    var trytesToSend = await diver.DoPow(trytes, IriApi.MinWeightMagnitude, NumberOfThreads, cts.Token);
+
+                    if (cts.IsCancellationRequested)
+                        continue;
+
+                    await IriApi.BroadcastTransactions(trytesToSend);
+                    await IriApi.StoreTransactions(trytesToSend);
+
+                    var transaction = new TransactionItem(trytesToSend);
+
+                    return transaction.Hash;
+                }
+                catch (OperationCanceledException)
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                        throw;
+
+                    continue;
+                }
+            }
+        }
+
         /// <summary>
         /// Attach, broadcast and store trytes to tangle
         /// </summary>
-        /// <param name="trytes"></param>
+        /// <param name="transactionTrytes"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public virtual async Task<string[]> SendTrytes(string[] trytes, CancellationToken cancellationToken)
+        public virtual async Task<string[]> SendTrytes(string[] transactionTrytes, CancellationToken cancellationToken)
         {
-            string[] trytesResult;
-            try
-            {
-                trytesResult = await iriApi.AttachToTangle(trytes, cancellationToken);
-                if(ExceptionHandler != null)
-                    await ExceptionHandler.SuccessToAttachToTangleAsync(this, trytes);
-            }
-            catch (Exception e)
-            {
-                if (ExceptionHandler != null)
-                {
-                    var handlerResult = await ExceptionHandler.FailedToAttachToTangleAsync(this, trytes, e);
-                    if (handlerResult == HandlerResult.Handled)
-                        return new string[] { };
-                }
-                throw;
-            }
-            await BroadcastAndStore(trytesResult);
-            return trytesResult;
+            if (transactionTrytes == null)
+                throw new ArgumentNullException(nameof(transactionTrytes));
+
+            var toApprove = await IriApi.GetTransactionsToApprove(Depth);
+
+            var trunk = toApprove.TrunkTransaction;
+            var branch = toApprove.BranchTransaction;
+
+            var trytesToSend = await transactionTrytes
+                .DoPow(trunk, branch, IriApi.MinWeightMagnitude, NumberOfThreads, cancellationToken);
+
+            await BroadcastAndStore(trytesToSend);
+            return trytesToSend;
         }
 
         /// <summary>
@@ -320,23 +413,8 @@ namespace Borlay.Iota.Library
         /// <returns></returns>
         public virtual async Task BroadcastAndStore(string[] trytes)
         {
-            try
-            {
-                await iriApi.BroadcastTransactions(trytes);
-                await iriApi.StoreTransactions(trytes);
-                if (ExceptionHandler != null)
-                    await ExceptionHandler.SuccessToBroadcastAndStoreAsync(this, trytes);
-            }
-            catch (Exception e)
-            {
-                if (ExceptionHandler != null)
-                {
-                    var handlerResult = await ExceptionHandler.FailedToBroadcastAndStoreAsync(this, trytes, e);
-                    if (handlerResult == HandlerResult.Handled)
-                        return;
-                }
-                throw;
-            }
+            await iriApi.BroadcastTransactions(trytes);
+            await iriApi.StoreTransactions(trytes);
         }
     }
 }

@@ -30,7 +30,7 @@ namespace Borlay.Iota.Library.Tests
             Assert.IsNotNull(address);
             Assert.AreEqual(1, address.Index);
             Assert.AreEqual(0, address.Balance);
-            Assert.IsFalse(address.HasTransactions);
+            Assert.IsTrue(address.TransactionCount == 0);
         }
 
         [TestMethod]
@@ -172,7 +172,7 @@ namespace Borlay.Iota.Library.Tests
                     var toApprove = await api.IriApi.GetTransactionsToApprove(9);
                     var diver = new PowDiver();
                     cts.CancelAfter(15000); //
-                    var trytesToSend = diver.DoPow(trytesToPow.ApproveTransactions(toApprove.TrunkTransaction, toApprove.BranchTransaction), 15, cts.Token);
+                    var trytesToSend = await diver.DoPow(trytesToPow.SetApproveTransactions(toApprove.TrunkTransaction, toApprove.BranchTransaction), 15, cts.Token);
                     //Thread.Sleep(200000);
                     await api.IriApi.BroadcastTransactions(trytesToSend);
                     await api.IriApi.StoreTransactions(trytesToSend);
@@ -218,7 +218,7 @@ namespace Borlay.Iota.Library.Tests
                     var branch = toApprove.BranchTransaction;
 
 
-                    var trytesToSend = diver.DoPow(trytesToPow.ApproveTransactions(trunk, branch), 15, cts.Token);
+                    var trytesToSend = await diver.DoPow(trytesToPow.SetApproveTransactions(trunk, branch), 15, cts.Token);
 
                     await api.IriApi.BroadcastTransactions(trytesToSend);
                     await api.IriApi.StoreTransactions(trytesToSend);
@@ -304,7 +304,7 @@ namespace Borlay.Iota.Library.Tests
                     else
                         branch = transactionHash;
 
-                    var trytesToSend = diver.DoPow(trytesToPow.ApproveTransactions(trunk, branch), 15, cts.Token);
+                    var trytesToSend = await diver.DoPow(trytesToPow.SetApproveTransactions(trunk, branch), 15, cts.Token);
 
                     await api.IriApi.BroadcastTransactions(trytesToSend);
                     await api.IriApi.StoreTransactions(trytesToSend);
@@ -334,7 +334,7 @@ namespace Borlay.Iota.Library.Tests
                 try
                 {
                     CancellationTokenSource cts = new CancellationTokenSource();
-                    cts.Token.Register(() => cts.Cancel());
+                    cancellationToken.Register(() => cts.Cancel());
 
                     var toApprove = await api.IriApi.GetTransactionsToApprove(9);
                     var diver = new PowDiver();
@@ -345,8 +345,8 @@ namespace Borlay.Iota.Library.Tests
 
 
 
-                    trytes = trytes.ApproveBranch(trunk);
-                    var trytesToSend = diver.DoPow(trytes, 15, cts.Token);
+                    trytes = trytes.SetApproveBranch(trunk);
+                    var trytesToSend = await diver.DoPow(trytes, 15, cts.Token);
 
                     if (cts.IsCancellationRequested)
                         continue;
@@ -384,48 +384,12 @@ namespace Borlay.Iota.Library.Tests
             Assert.AreEqual(range.Count(), list.Count());
         }
 
-        private async Task AproveTransaction(string address, string transactionHash)
-        {
-            await Task.Yield();
-
-            var api = CreateIotaClient();
-            var transferRecon = new TransferItem()
-            {
-                Address = address,
-                Value = 0,
-                Message = "MESSAGETESTRECON",
-                Tag = "TAGTESTRECON"
-            };
-            var transactionsRec = transferRecon.CreateTransactions();
-            var trytesRec = transactionsRec.GetTrytes();
-
-            var toApprove = await api.IriApi.GetTransactionsToApprove(9);
-            await api.IriApi.AttachToTangle(trytesRec, transactionHash, toApprove.BranchTransaction, CancellationToken.None);
-            toApprove = await api.IriApi.GetTransactionsToApprove(9);
-            await api.IriApi.AttachToTangle(trytesRec, toApprove.TrunkTransaction, transactionHash, CancellationToken.None);
-        }
-
-        [TestMethod]
-        public async Task ForceApproveTransaction(string transactionHash)
-        {
-            //var t = "ROOLNRKPZTBWELDVVTP9EFV9ZBETLJNILQBZOPZNVXAGFUWULYKCPYEMKZZAHWCNYCQMWVYXGBWO99999";
-            //var t2 = "MQTRQLVFSFNZJZUHMPYMO9MMZSOWQTYSAJIODNFVIXZRQIZEOQXMMGXXJPBJGSFVKIIOMNEQBFDZ99999";
-            //var t3 = "LMEANDNWRTFSBTQTMQOCIPICIO9GTPYJYYQLPIVHMKBWLEFROUV9CPIHFVYXJFVIXIKWD9SSIHMV99999";
-
-            var trunked = await ApproveTransaction(transactionHash, ApproveTransactionType.Trunk);
-            var branched = await ApproveTransaction(transactionHash, ApproveTransactionType.Branch);
-
-            await ForceApproveTransaction(trunked);
-            await ForceApproveTransaction(branched);
-
-        }
-
 
         [TestMethod]
         public async Task DoPowAndSendTransactionWithValueTest()
         {
             var api = CreateIotaClient();
-            var addresses = await api.GetAddresses(TestSeed, 103, 3, CancellationToken.None);
+            var addresses = await api.GetAddresses(TestSeed, 104, 3, CancellationToken.None);
             var transfer = new TransferItem()
             {
                 Address = addresses[1].Address,
@@ -447,29 +411,8 @@ namespace Borlay.Iota.Library.Tests
                     var trunk = toApprove.TrunkTransaction;
                     var branch = toApprove.BranchTransaction;
 
-                    var trytesToSend = transactionTrytes.DoPow(trunk, branch, 15, cts.Token);
+                    var trytesToSend = await transactionTrytes.DoPow(trunk, branch, 15, cts.Token);
 
-                    //ConcurrentBag<Tuple<string, int>> trytesBag = new ConcurrentBag<Tuple<string, int>>();
-
-                    //var lastSetTrunk = trunk;
-
-                    //for (int i = 0; i < trytesRec.Length; i++)
-                    //{
-                    //    if (i == 0)
-                    //        branch = toApprove.BranchTransaction;
-                    //    else
-                    //        branch = toApprove.TrunkTransaction;
-
-                    //    var diver = new PowDiver();
-                    //    var trytes = diver.DoPow(trytesRec[i], trunk, branch, 15, cts.Token);
-                    //    var transaction = new TransactionItem(trytes);
-                    //    trunk = transaction.Hash;
-
-                    //    trytesBag.Add(new Tuple<string, int>(trytes, i));
-                    //}
-
-
-                    //var trytesToSend = trytesBag.OrderBy(i => i.Item2).Select(i => i.Item1).ToArray();
                     await api.IriApi.BroadcastTransactions(trytesToSend);
                     await api.IriApi.StoreTransactions(trytesToSend);
 
@@ -477,8 +420,6 @@ namespace Borlay.Iota.Library.Tests
 
                     var transactionItem = new TransactionItem(firstTrytes);
                     var rebroadcastTransactionHash = await Rebroadcast(firstTrytes);
-
-
 
                     break;
                 }
@@ -488,43 +429,6 @@ namespace Borlay.Iota.Library.Tests
                 }
             }
         }
-
-        //[TestMethod]
-        //public async Task DoPowAndSendTransactionTest()
-        //{
-        //    var api = CreateIotaClient();
-        //    var address = await api.GetAddress(TestSeed, 150);
-        //    var transferRecon = new TransferItem()
-        //    {
-        //        Address = address.Address,
-        //        Value = 0,
-        //        Message = "MESSAGETESTPOW",
-        //        Tag = "TAGTESTPOW"
-        //    };
-        //    var transactionsRec = transferRecon.CreateTransactions();
-        //    var trytesRec = transactionsRec.GetTrytes();
-        //    var toApprove = await api.IriApi.GetTransactionsToApprove(9);
-
-        //    var diver = new PowDiver();
-        //    var trytesToSend = diver.DoPow(trytesRec, toApprove.TrunkTransaction, toApprove.BranchTransaction, 15);
-        //    int broadcastCount = 0;
-        //    var broadcastUrls = BroadcastUrls();
-        //    await broadcastUrls.ParallelAsync(async u =>
-        //    {
-        //        try
-        //        {
-        //            await api.IriApi.BroadcastTransactions(trytesToSend);
-        //            await api.IriApi.StoreTransactions(trytesToSend);
-        //            Interlocked.Increment(ref broadcastCount);
-        //        }
-        //        catch
-        //        {
-
-        //        }
-        //    });
-
-        //    Assert.IsTrue(broadcastCount > 0);
-        //}
 
 
         [TestMethod]
@@ -536,7 +440,7 @@ namespace Borlay.Iota.Library.Tests
             Assert.IsNotNull(address);
             Assert.AreEqual(100, address.Index);
             Assert.AreEqual(0, address.Balance);
-            Assert.IsTrue(address.HasTransactions);
+            Assert.IsTrue(address.TransactionCount > 0);
         }
 
         [TestMethod]
@@ -571,7 +475,7 @@ namespace Borlay.Iota.Library.Tests
             Assert.IsNotNull(address);
             Assert.AreEqual(0, address.Index);
             Assert.AreEqual(0, address.Balance);
-            Assert.IsTrue(address.HasTransactions);
+            Assert.IsTrue(address.TransactionCount > 0);
         }
 
         private IotaApi CreateIotaClient()

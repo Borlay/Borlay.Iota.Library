@@ -50,6 +50,8 @@ namespace Borlay.Iota.Library
             return transactionTrytes;
         }
 
+        //public static async Task<TransactionItem> GetTransactions(this AddressItem)
+
         private static IEnumerable<string> ChunksUpto(string str, int maxChunkSize)
         {
             if (string.IsNullOrWhiteSpace(str))
@@ -124,7 +126,7 @@ namespace Borlay.Iota.Library
                 };
                 yield return transactionItem;
 
-                
+
 
                 if (withdrawAmount < 0) // deposit remind amount to reminder address
                 {
@@ -195,7 +197,12 @@ namespace Borlay.Iota.Library
             return transactions.ToArray();
         }
 
-        public static string[] DoPow(this string[] trytes, string trunkTransaction, string branchTransaction, int minWeightMagnitude, CancellationToken cancellationToken)
+        public static Task<string[]> DoPow(this string[] trytes, string trunkTransaction, string branchTransaction, int minWeightMagnitude, CancellationToken cancellationToken)
+        {
+            return trytes.DoPow(trunkTransaction, branchTransaction, minWeightMagnitude, 0, cancellationToken);
+        }
+
+        public static async Task<string[]> DoPow(this string[] trytes, string trunkTransaction, string branchTransaction, int minWeightMagnitude, int numberOfThreads, CancellationToken cancellationToken)
         {
             var trunk = trunkTransaction;
             var branch = branchTransaction;
@@ -209,10 +216,10 @@ namespace Borlay.Iota.Library
                     branch = trunkTransaction;
 
                 var tryte = trytes[i];
-                tryte = tryte.ApproveTransactions(trunk, branch);
+                tryte = tryte.SetApproveTransactions(trunk, branch);
 
                 var diver = new PowDiver();
-                var tryteWithNonce = diver.DoPow(tryte, minWeightMagnitude, cancellationToken);
+                var tryteWithNonce = await diver.DoPow(tryte, minWeightMagnitude, numberOfThreads, cancellationToken);
                 var transaction = new TransactionItem(tryteWithNonce);
                 trunk = transaction.Hash;
 
@@ -228,7 +235,7 @@ namespace Borlay.Iota.Library
             return pad;
         }
 
-        public static string ApproveTransactions(this string trytes, string trunkTransaction, string branchTransaction)
+        public static string SetApproveTransactions(this string trytes, string trunkTransaction, string branchTransaction)
         {
             var trytesConstruct = trytes.Substring(0, 2430);
             trytesConstruct += trunkTransaction;
@@ -238,7 +245,7 @@ namespace Borlay.Iota.Library
             return trytesConstruct;
         }
 
-        public static string ApproveBranch(this string trytes, string branchTransaction)
+        public static string SetApproveBranch(this string trytes, string branchTransaction)
         {
             var trytesConstruct = trytes.Substring(0, 2430 + 81);
             trytesConstruct += branchTransaction;

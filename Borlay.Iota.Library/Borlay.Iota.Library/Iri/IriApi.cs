@@ -97,10 +97,10 @@ namespace Borlay.Iota.Library.Iri
             return response.Balances;
         }
 
-        public async Task<bool[]> GetInclusionStates(IEnumerable<string> transactions, IEnumerable<string> milestones)
+        public async Task<bool[]> GetInclusionStates(IEnumerable<string> transactions, params string[] milestones)
         {
             var response = await genericClient.RequestAsync<GetInclusionStatesResponse>(
-                    new GetInclusionStatesRequest(transactions.ToArray(), milestones.ToArray()));
+                    new GetInclusionStatesRequest(transactions.ToArray(), milestones));
             if (response == null)
                 throw new NullReferenceException(nameof(response));
 

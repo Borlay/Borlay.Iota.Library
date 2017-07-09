@@ -36,7 +36,7 @@ namespace Borlay.Iota.Library.Utils
         public const int COMPLETED = 2;
 
         public volatile int state;
-        public Object syncObj = new Object();
+        public object syncObj = new object();
 
         public void cancel()
         {
@@ -47,28 +47,35 @@ namespace Borlay.Iota.Library.Utils
         }
 
 
-
-
-
-        public string DoPow(string trytes, int minWeightMagnitude)
+        public Task<string> DoPow(string trytes, int minWeightMagnitude, CancellationToken cancellationToken)
         {
-            return DoPow(trytes, minWeightMagnitude, CancellationToken.None);
+            return DoPow(trytes, minWeightMagnitude, 0, cancellationToken);
         }
 
-        public string DoPow(string trytes, int minWeightMagnitude, CancellationToken CancellationToken)
+        public Task<string> DoPow(string trytes, int minWeightMagnitude)
+        {
+            return DoPow(trytes, minWeightMagnitude, 0, CancellationToken.None);
+        }
+
+        public Task<string> DoPow(string trytes, int minWeightMagnitude, int numberOfThreads)
+        {
+            return DoPow(trytes, minWeightMagnitude, numberOfThreads, CancellationToken.None);
+        }
+
+        public async Task<string> DoPow(string trytes, int minWeightMagnitude, int numberOfThreads, CancellationToken CancellationToken)
         {
             var intxTrits = Library.Utils.Converter.ToTrits(trytes);
-            var result = search(intxTrits, minWeightMagnitude, 1, CancellationToken);
+            await search(intxTrits, minWeightMagnitude, numberOfThreads, CancellationToken);
             var resultTrytes = Utils.Converter.ToTrytes(intxTrits);
             return resultTrytes;
         }
-        public bool search(int[] transactionTrits, int minWeightMagnitude, int numberOfThreads)
+        public Task search(int[] transactionTrits, int minWeightMagnitude, int numberOfThreads)
         {
             return search(transactionTrits, minWeightMagnitude, numberOfThreads, CancellationToken.None);
         }
 
 
-        public bool search(int[] transactionTrits, int minWeightMagnitude, int numberOfThreads, CancellationToken CancellationToken)
+        public async Task search(int[] transactionTrits, int minWeightMagnitude, int numberOfThreads, CancellationToken CancellationToken)
         {
 
             if (transactionTrits.Length != TRANSACTION_LENGTH)
@@ -80,9 +87,10 @@ namespace Borlay.Iota.Library.Utils
                 throw new Exception("Invalid min weight magnitude: " + minWeightMagnitude);
             }
 
-            //synchronized(syncObj) {
-            //    state = RUNNING;
-            //}
+            lock (syncObj)
+            {
+                state = RUNNING;
+            }
 
             ulong[] midCurlStateLow = new ulong[CURL_STATE_LENGTH], midCurlStateHigh = new ulong[CURL_STATE_LENGTH];
 
@@ -148,7 +156,7 @@ namespace Borlay.Iota.Library.Utils
 
             if (numberOfThreads <= 0)
             {
-                numberOfThreads = Environment.ProcessorCount - 1;
+                numberOfThreads = Environment.ProcessorCount; // - 1;
                 if (numberOfThreads < 1)
                 {
                     numberOfThreads = 1;
@@ -157,10 +165,13 @@ namespace Borlay.Iota.Library.Utils
 
             //Thread[] workers = new Thread[numberOfThreads];
 
-            //while (numberOfThreads-- > 0)
+            List<Task> tasks = new List<Task>();
+
+            while (numberOfThreads-- > 0)
             {
 
                 int threadIndex = numberOfThreads;
+                var task = Task.Factory.StartNew(() =>
                 //Thread worker = (new Thread(() =>
                 {
 
@@ -212,29 +223,32 @@ namespace Borlay.Iota.Library.Utils
                         }
                         break;
                     }
-                }//));
-                 // workers[threadIndex] = worker;
-                 //worker.Start();
+                });
+                tasks.Add(task);
+                // workers[threadIndex] = worker;
+                //worker.Start();
             }
 
-            try
-            {
-                lock (syncObj)
-                {
-                    if (state == RUNNING)
-                    {
-                        //syncObj.wait();
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                lock (syncObj)
-                {
-                    state = CANCELLED;
-                }
-            }
-            return state == COMPLETED;
+            await Task.WhenAll(tasks);
+
+            //try
+            //{
+            //    lock (syncObj)
+            //    {
+            //        if (state == RUNNING)
+            //        {
+            //            //syncObj.wait();
+            //        }
+            //    }
+            //}
+            //catch (Exception e)
+            //{
+            //    lock (syncObj)
+            //    {
+            //        state = CANCELLED;
+            //    }
+            //}
+            //return state == COMPLETED;
         }
 
         private static void transform(ulong[] curlStateLow, ulong[] curlStateHigh, ulong[] curlScratchpadLow, ulong[] curlScratchpadHigh)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Text;
 
 namespace Borlay.Iota.Library.Models
@@ -12,21 +13,24 @@ namespace Borlay.Iota.Library.Models
         private int[] privateKey;
         private long balance;
         private int keyIndex;
-        private bool hasTransactions;
+        //private bool hasTransactions;
 
-        public bool HasTransactions
+        public AddressItem()
+        {
+            this.transactions = new ObservableCollection<TransactionHash>();
+            this.transactions.CollectionChanged += Transactions_CollectionChanged;
+        }
+
+        private void Transactions_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            NotifyPropertyChanged(nameof(TransactionCount));
+        }
+
+        public int TransactionCount
         {
             get
             {
-                return this.hasTransactions;
-            }
-            set
-            {
-                if (value != this.hasTransactions)
-                {
-                    this.hasTransactions = value;
-                    NotifyPropertyChanged();
-                }
+                return this.Transactions?.Count ?? 0;
             }
         }
 
@@ -90,6 +94,19 @@ namespace Borlay.Iota.Library.Models
                     this.keyIndex = value;
                     NotifyPropertyChanged();
                 }
+            }
+        }
+
+        private ObservableCollection<TransactionHash> transactions;
+
+        /// <summary>
+        /// Gets the transactions
+        /// </summary>
+        public ObservableCollection<TransactionHash> Transactions
+        {
+            get
+            {
+                return transactions;
             }
         }
     }

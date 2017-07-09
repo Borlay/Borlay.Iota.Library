@@ -8,7 +8,7 @@ namespace Borlay.Iota.Library.Models
     /// <summary>
     /// This class represents an iota transaction
     /// </summary>
-    public class TransactionItem : IApproveTransactions
+    public class TransactionItem : TransactionHash, IApproveTransactions
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="TransactionItem"/> class.
@@ -34,18 +34,37 @@ namespace Borlay.Iota.Library.Models
         /// </exception>
         public TransactionItem(string trytes, ICurl curl)
         {
+            UpdateFromTrytes(trytes, curl);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TransactionItem"/> class.
+        /// </summary>
+        /// <param name="trytes">The trytes representing the transaction</param>
+        public TransactionItem(string trytes) : this(trytes, new Curl())
+        {
+        }
+
+
+        public void UpdateFromTrytes(string trytes)
+        {
+            UpdateFromTrytes(trytes, new Curl());
+        }
+
+        public void UpdateFromTrytes(string trytes, ICurl curl)
+        {
             if (string.IsNullOrEmpty(trytes))
-            {
-                throw new ArgumentException("trytes must non-null");
-            }
+                throw new ArgumentNullException(nameof(trytes));
+
+            if (curl == null)
+                throw new ArgumentNullException(nameof(curl));
 
             // validity check
             for (int i = 2279; i < 2295; i++)
             {
                 if (trytes[i] != '9')
-                {
                     throw new ArgumentException("position " + i + "must not be '9'");
-                }
+
             }
 
             int[] transactionTrits = Converter.ToTrits(trytes);
@@ -73,14 +92,6 @@ namespace Borlay.Iota.Library.Models
         /// <summary>
         /// Initializes a new instance of the <see cref="TransactionItem"/> class.
         /// </summary>
-        /// <param name="trytes">The trytes representing the transaction</param>
-        public TransactionItem(string trytes) : this(trytes, new Curl())
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TransactionItem"/> class.
-        /// </summary>
         /// <param name="address">The address.</param>
         /// <param name="value">The value.</param>
         /// <param name="tag">The tag.</param>
@@ -93,21 +104,45 @@ namespace Borlay.Iota.Library.Models
             Timestamp = timestamp;
         }
 
+        private string tag;
+        private string address;
+        private string value;
+        private string timestamp;
+        private string signatureMessageChunk;
+        private string digest;
+        private string type;
+
+        private string bundle;
+        //private int index;
+        private string trunkTransaction;
+        private string branchTransaction;
+        private string signatureFragment;
+        private string lastIndex;
+        private string currentIndex;
+        private string nonce;
+        private bool persistence;
+
         /// <summary>
         /// Gets or sets the tag.
         /// </summary>
         /// <value>
         /// The tag.
         /// </value>
-        public string Tag { get; set; }
-
-        /// <summary>
-        /// Gets or sets the hash.
-        /// </summary>
-        /// <value>
-        /// The hash.
-        /// </value>
-        public string Hash { get; set; }
+        public string Tag
+        {
+            get
+            {
+                return tag;
+            }
+            set
+            {
+                if (value != this.tag)
+                {
+                    this.tag = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
         /// <summary>
         /// Gets or sets the type.
@@ -115,7 +150,21 @@ namespace Borlay.Iota.Library.Models
         /// <value>
         /// The type.
         /// </value>
-        public string Type { get; set; }
+        public string Type
+        {
+            get
+            {
+                return type;
+            }
+            set
+            {
+                if (value != this.type)
+                {
+                    this.type = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
         /// <summary>
         /// Gets or sets the signature message chunk.
@@ -123,7 +172,21 @@ namespace Borlay.Iota.Library.Models
         /// <value>
         /// The signature message chunk.
         /// </value>
-        public string SignatureMessageChunk { get; set; }
+        public string SignatureMessageChunk
+        {
+            get
+            {
+                return signatureMessageChunk;
+            }
+            set
+            {
+                if (value != this.signatureMessageChunk)
+                {
+                    this.signatureMessageChunk = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
         /// <summary>
         /// Gets or sets the digest.
@@ -131,7 +194,21 @@ namespace Borlay.Iota.Library.Models
         /// <value>
         /// The digest.
         /// </value>
-        public string Digest { get; set; }
+        public string Digest
+        {
+            get
+            {
+                return digest;
+            }
+            set
+            {
+                if (value != this.digest)
+                {
+                    this.digest = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
         /// <summary>
         /// Gets or sets the address.
@@ -139,7 +216,21 @@ namespace Borlay.Iota.Library.Models
         /// <value>
         /// The address.
         /// </value>
-        public string Address { get; set; }
+        public string Address
+        {
+            get
+            {
+                return address;
+            }
+            set
+            {
+                if (value != this.address)
+                {
+                    this.address = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
         /// <summary>
         /// Gets or sets the value.
@@ -147,7 +238,21 @@ namespace Borlay.Iota.Library.Models
         /// <value>
         /// The value.
         /// </value>
-        public string Value { get; set; }
+        public string Value
+        {
+            get
+            {
+                return value;
+            }
+            set
+            {
+                if (value != this.value)
+                {
+                    this.value = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
         /// <summary>
         /// Gets or sets the timestamp.
@@ -155,7 +260,21 @@ namespace Borlay.Iota.Library.Models
         /// <value>
         /// The timestamp.
         /// </value>
-        public string Timestamp { get; set; }
+        public string Timestamp
+        {
+            get
+            {
+                return timestamp;
+            }
+            set
+            {
+                if (value != this.timestamp)
+                {
+                    this.timestamp = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
         /// <summary>
         /// Gets or sets the bundle.
@@ -163,15 +282,43 @@ namespace Borlay.Iota.Library.Models
         /// <value>
         /// The bundle.
         /// </value>
-        public string Bundle { get; set; }
+        public string Bundle
+        {
+            get
+            {
+                return bundle;
+            }
+            set
+            {
+                if (value != this.bundle)
+                {
+                    this.bundle = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
-        /// <summary>
-        /// Gets or sets the index.
-        /// </summary>
-        /// <value>
-        /// The index.
-        /// </value>
-        public int Index { get; set; }
+        ///// <summary>
+        ///// Gets or sets the index.
+        ///// </summary>
+        ///// <value>
+        ///// The index.
+        ///// </value>
+        //public int Index
+        //{
+        //    get
+        //    {
+        //        return index;
+        //    }
+        //    set
+        //    {
+        //        if (value != this.index)
+        //        {
+        //            this.index = value;
+        //            NotifyPropertyChanged();
+        //        }
+        //    }
+        //}
 
         /// <summary>
         /// Gets or sets the trunk transaction.
@@ -179,7 +326,21 @@ namespace Borlay.Iota.Library.Models
         /// <value>
         /// The trunk transaction.
         /// </value>
-        public string TrunkTransaction { get; set; }
+        public string TrunkTransaction
+        {
+            get
+            {
+                return trunkTransaction;
+            }
+            set
+            {
+                if (value != this.trunkTransaction)
+                {
+                    this.trunkTransaction = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
         /// <summary>
         /// Gets or sets the branch transaction.
@@ -187,7 +348,21 @@ namespace Borlay.Iota.Library.Models
         /// <value>
         /// The branch transaction.
         /// </value>
-        public string BranchTransaction { get; set; }
+        public string BranchTransaction
+        {
+            get
+            {
+                return branchTransaction;
+            }
+            set
+            {
+                if (value != this.branchTransaction)
+                {
+                    this.branchTransaction = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
         /// <summary>
         /// Gets or sets the signature fragment.
@@ -195,7 +370,21 @@ namespace Borlay.Iota.Library.Models
         /// <value>
         /// The signature fragment.
         /// </value>
-        public string SignatureFragment { get; set; }
+        public string SignatureFragment
+        {
+            get
+            {
+                return signatureFragment;
+            }
+            set
+            {
+                if (value != this.signatureFragment)
+                {
+                    this.signatureFragment = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
         /// <summary>
         /// Gets or sets the last index.
@@ -203,7 +392,21 @@ namespace Borlay.Iota.Library.Models
         /// <value>
         /// The last index.
         /// </value>
-        public string LastIndex { get; set; }
+        public string LastIndex
+        {
+            get
+            {
+                return lastIndex;
+            }
+            set
+            {
+                if (value != this.lastIndex)
+                {
+                    this.lastIndex = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
         /// <summary>
         /// Gets or sets the index of the current.
@@ -211,7 +414,21 @@ namespace Borlay.Iota.Library.Models
         /// <value>
         /// The index of the current.
         /// </value>
-        public string CurrentIndex { get; set; }
+        public string CurrentIndex
+        {
+            get
+            {
+                return currentIndex;
+            }
+            set
+            {
+                if (value != this.currentIndex)
+                {
+                    this.currentIndex = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
         /// <summary>
         /// Gets or sets the nonce.
@@ -219,7 +436,21 @@ namespace Borlay.Iota.Library.Models
         /// <value>
         /// The nonce.
         /// </value>
-        public string Nonce { get; set; }
+        public string Nonce
+        {
+            get
+            {
+                return nonce;
+            }
+            set
+            {
+                if (value != this.nonce)
+                {
+                    this.nonce = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="TransactionItem"/> is persistance.
@@ -227,7 +458,21 @@ namespace Borlay.Iota.Library.Models
         /// <value>
         ///   <c>true</c> if persistance; otherwise, <c>false</c>.
         /// </value>
-        public bool Persistance { get; set; }
+        public bool Persistence
+        {
+            get
+            {
+                return persistence;
+            }
+            set
+            {
+                if (value != this.persistence)
+                {
+                    this.persistence = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
         /// <summary>
         /// Converts the transaction to the corresponding trytes representation
@@ -261,7 +506,7 @@ namespace Borlay.Iota.Library.Models
         /// </returns>
         public override string ToString()
         {
-            return $"{nameof(Value)}: {Value}, {nameof(Persistance)}: {Value}, {nameof(Tag)}: {Tag}, {nameof(Hash)}: {Hash}, {nameof(Type)}: {Type}, {nameof(SignatureMessageChunk)}: {SignatureMessageChunk}, {nameof(Digest)}: {Digest}, {nameof(Address)}: {Address}, {nameof(Timestamp)}: {Timestamp}, {nameof(Bundle)}: {Bundle}, {nameof(Index)}: {Index}, {nameof(TrunkTransaction)}: {TrunkTransaction}, {nameof(BranchTransaction)}: {BranchTransaction}, {nameof(SignatureFragment)}: {SignatureFragment}, {nameof(LastIndex)}: {LastIndex}, {nameof(CurrentIndex)}: {CurrentIndex}, {nameof(Nonce)}: {Nonce}";
+            return $"{nameof(Value)}: {Value}, {nameof(Persistence)}: {Value}, {nameof(Tag)}: {Tag}, {nameof(Hash)}: {Hash}, {nameof(Type)}: {Type}, {nameof(SignatureMessageChunk)}: {SignatureMessageChunk}, {nameof(Digest)}: {Digest}, {nameof(Address)}: {Address}, {nameof(Timestamp)}: {Timestamp}, {nameof(Bundle)}: {Bundle}, {nameof(TrunkTransaction)}: {TrunkTransaction}, {nameof(BranchTransaction)}: {BranchTransaction}, {nameof(SignatureFragment)}: {SignatureFragment}, {nameof(LastIndex)}: {LastIndex}, {nameof(CurrentIndex)}: {CurrentIndex}, {nameof(Nonce)}: {Nonce}";
         }
     }
 }
