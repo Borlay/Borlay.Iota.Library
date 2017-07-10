@@ -1,5 +1,7 @@
-# Borlay.Iota.Library
-.netStandard 1.4 library for IOTA wallets.
+# Introduction
+
+IOTA is a distributed ledger for the Internet of Things. The first ledger with microtransactions without fees as well as secure data transfer. Quantum proof.
+http://iota.org
 
 ## Nuget
 
