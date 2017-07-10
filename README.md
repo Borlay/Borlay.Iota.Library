@@ -16,6 +16,7 @@ The Borlay.Iota.Library is writen for [.NET Standard 1.1](https://docs.microsoft
 ```PowerShell
 Install-Package Borlay.Iota.Library
 ```
+[Borlay.Iota.Library nuget](https://www.nuget.org/packages/Borlay.Iota.Library/)
 
 ## Getting started
 
