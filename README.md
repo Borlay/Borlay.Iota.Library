@@ -1,7 +1,10 @@
 # Introduction
 
-IOTA is a distributed ledger for the Internet of Things. The first ledger with microtransactions without fees as well as secure data transfer. Quantum proof.
+The Borlay.Iota.Library implements [[IOTA IRI api calls]](https://github.com/iotaledger/wiki/blob/master/api-proposal.md).
+It also can do proof of work for you.
+
 http://iota.org
+https://github.com/iotaledger
 
 ## Nuget
 
@@ -65,5 +68,3 @@ var trytesToSend = await transactionTrytes
                 .DoPow(trunk, branch, 15, 0, CancellationToken.None); // do pow
 await BroadcastAndStore(trytesToSend); // broadcast and send trytes
 ```
-
-Official IOTA project here: https://github.com/iotaledger
