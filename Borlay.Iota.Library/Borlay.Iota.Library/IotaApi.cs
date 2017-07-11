@@ -105,7 +105,7 @@ namespace Borlay.Iota.Library
 
         private async Task<AddressItem> NewAddressAsync(string seed, int index, CancellationToken cancellationToken)
         {
-            await Task.Yield();
+            await TaskIota.Yield().ConfigureAwait(false);
             // need yield because new address generation is very costly
 
             int[] key = new Signing(new Curl()).Key(Converter.ToTrits(seed), index, 2);
