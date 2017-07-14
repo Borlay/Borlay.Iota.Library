@@ -1,7 +1,7 @@
 # Introduction
 
 The Borlay.Iota.Library implements [[IOTA IRI api calls]](https://github.com/iotaledger/wiki/blob/master/api-proposal.md).
-It also can do proof of work for you.
+It also can do the proof of work for you.
 
 http://iota.org
 https://github.com/iotaledger
@@ -20,7 +20,7 @@ Install-Package Borlay.Iota.Library
 
 ## Getting started
 
-Get address with balance and transactions hashes
+Get the address with the balance and the transactions hashes
 ```cs
 var api = new IotaApi("http://node.iotawallet.info:14265", 15);
 var address = await api.GetAddress("YOURSEED", 0);
@@ -32,8 +32,8 @@ var transactionHashes = address.Transactions;
 
  Renew your addresses
  ```cs
-api.RenewBalances(address); // gets balances
-api.RenewTransactions(address); // gets transactions hashes
+api.RenewBalances(address); // gets the balances
+api.RenewTransactions(address); // gets the transactions hashes
 api.RenewAddresses(address); // both
 ```
 
@@ -49,7 +49,7 @@ var transfer = new TransferItem()
 var transactionItem = await api.SendTransfer(transfer, CancellationToken.None);
 ```
 
-Or you can send transaction with value
+Or you can send the transaction with the value
 ```cs
 var transfer = new TransferItem()
 {
@@ -60,17 +60,21 @@ var transfer = new TransferItem()
 };
 var transactionItem = await api.SendTransfer(transfer, "YOURSEED", 0, CancellationToken.None);
 ```
+By default the pow will run on local pc but you can change to run it on iri
+```cs
+api.NonceSeeker = api.IriApi;
+```
 
 # POW
 
-You can do pow (attachToTangle) like this
+You can do the pow (attachToTangle) like this
 ```cs
 var transactionTrytes = transfer.CreateTransactions().GetTrytes(); // gets transactions from transfer and then trytes
-var toApprove = await IriApi.GetTransactionsToApprove(9); // gets transactions to approve
+var toApprove = await api.IriApi.GetTransactionsToApprove(9); // gets transactions to approve
 var trunk = toApprove.TrunkTransaction;
 var branch = toApprove.BranchTransaction;
 
 var trytesToSend = await transactionTrytes
-                .DoPow(trunk, branch, 15, 0, CancellationToken.None); // do pow
-await BroadcastAndStore(trytesToSend); // broadcast and send trytes
+                .DoPow(trunk, branch, 15, 0, CancellationToken.None); // do the pow
+await api.BroadcastAndStore(trytesToSend); // broadcast and send the trytes
 ```
