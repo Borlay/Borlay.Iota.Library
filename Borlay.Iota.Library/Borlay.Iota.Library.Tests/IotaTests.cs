@@ -108,8 +108,8 @@ namespace Borlay.Iota.Library.Tests
             {
                 Address = address.Address,
                 Value = 0,
-                Message = "MESSAGETEST",
-                Tag = "TAGTEST"
+                Message = null, // "MESSAGETEST",
+                Tag = null// "TAGTEST"
             };
 
             var transactionItem = await api.SendTransfer(transfer, CancellationToken.None);

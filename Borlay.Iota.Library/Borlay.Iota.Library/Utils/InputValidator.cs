@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using Borlay.Iota.Library.Exceptions;
+using System.Runtime.CompilerServices;
 
 namespace Borlay.Iota.Library.Utils
 {
@@ -94,7 +95,7 @@ namespace Borlay.Iota.Library.Utils
         /// <returns>
         ///   <c>true</c> if the specified trytes are trytes otherwise, <c>false</c>.
         /// </returns>
-        public static bool IsTrytes(string trytes, int length)
+        public static bool IsTrytes(string trytes, int length = 0)
         {
             string regex = "^[9A-Z]{" + (length == 0 ? "0," : length.ToString()) + "}$";
             var regexTrytes = new Regex(regex);
@@ -121,52 +122,43 @@ namespace Borlay.Iota.Library.Utils
         /// <returns>
         ///   <c>true</c> if the specified transfers are valid; otherwise, <c>false</c>.
         /// </returns>
-        public static bool IsTransfersCollectionValid(IEnumerable<TransferItem> transfers)
+        public static void ValidateTransfers(this IEnumerable<TransferItem> transfers)
         {
             foreach (var transfer in transfers)
             {
-                if (!IsValidTransfer(transfer))
-                {
-                    return false;
-                }
+                transfer.ValidateTransfer();
             }
-            return true;
         }
 
         /// <summary>
         /// Determines whether the specified transfer is valid.
         /// </summary>
         /// <param name="transfer">The transfer.</param>
-        /// <returns>
-        ///   <c>true</c> if the specified transfer is valid; otherwise, <c>false</c>.
-        /// </returns>
-        public static bool IsValidTransfer(TransferItem transfer)
+        public static void ValidateTransfer(this TransferItem transfer)
         {
+            if (string.IsNullOrWhiteSpace(transfer.Address))
+                throw new IotaException("Transfer address should be set");
+
             if (!IsAddress(transfer.Address))
-            {
-                return false;
-            }
+                throw new IotaException("Invalid transfer address");
 
-            // Check if message is correct trytes of any length
-            if (!IsTrytes(transfer.Message, 0))
-            {
-                return false;
-            }
-
-            // Check if tag is correct trytes of {0,27} trytes
-            var isTrytes = IsTrytes(transfer.Tag, 0);
-            return isTrytes;
+            transfer.Message.ValidateTrytes(nameof(transfer.Message));
+            transfer.Tag.ValidateTrytes(nameof(transfer.Tag));
         }
 
         /// <summary>
-        /// Checks the specified specified transfers are valid. If not, an exception is thrown.
+        /// Determines whether the specified value is valid.
         /// </summary>
-        /// <param name="transactionsArray">The transactions array.</param>
-        /// <exception cref="System.Exception">Not a transfer array</exception>
-        public static void CheckTransferArray(IEnumerable<TransferItem> transactionsArray)
+        /// <param name="value">The value.</param>
+        public static string ValidateTrytes(this string value, [CallerMemberName]string propertyName = "")
         {
-            if (!IsTransfersCollectionValid(transactionsArray))
-                throw new System.Exception("Not a transfer array");
+            if (!string.IsNullOrEmpty(value))
+            {
+                // Check if value is correct trytes of any length
+                if (!IsTrytes(value, 0))
+                    throw new IotaException($"Invalid transfer {propertyName}");
+            }
+            return value;
         }
 
         /// <summary>

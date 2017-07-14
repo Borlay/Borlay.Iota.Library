@@ -55,7 +55,10 @@ namespace Borlay.Iota.Library
         private static IEnumerable<string> ChunksUpto(string str, int maxChunkSize)
         {
             if (string.IsNullOrWhiteSpace(str))
+            {
                 yield return string.Empty;
+                yield break;
+            }
 
             for (int i = 0; i < str.Length; i += maxChunkSize)
                 yield return str.Substring(i, Math.Min(maxChunkSize, str.Length - i));
@@ -64,16 +67,12 @@ namespace Borlay.Iota.Library
         private static IEnumerable<TransactionItem> CreateDepositTransaction(TransferItem transferItem)
         {
             var timestamp = IotaApiUtils.CreateTimeStampNow().ToString();
-
-            var tag = transferItem.Tag ?? Constants.EmptyTag;
-            // Pad for required 27 tryte length
-            while (tag.Length < 27) tag += '9';
+            var tag = transferItem.Tag.ValidateTrytes(nameof(transferItem.Tag)).Pad(27);
 
             var messages = ChunksUpto(transferItem.Message, 2187).ToArray();
             for (int i = 0; i < messages.Length; i++)
             {
-                var message = messages[i];
-                while (message.Length < 2187) message += '9';
+                var message = messages[i].ValidateTrytes(nameof(transferItem.Message)).Pad(2187);
 
                 var transactionItem = new TransactionItem()
                 {
@@ -94,9 +93,7 @@ namespace Borlay.Iota.Library
                 throw new ArgumentNullException(nameof(reminderAddress));
 
             var curl = new Curl();
-
-            tag = tag ?? Constants.EmptyTag;
-            while (tag.Length < 27) tag += '9';
+            tag = tag.ValidateTrytes(nameof(tag)).Pad(27);
 
             foreach (var addressItem in addressItems)
             {
@@ -130,8 +127,7 @@ namespace Borlay.Iota.Library
 
                 if (withdrawAmount < 0) // deposit remind amount to reminder address
                 {
-                    var message = "";
-                    while (message.Length < 2187) message += '9';
+                    var message = "".Pad(2187);
 
                     transactionItem = new TransactionItem()
                     {
@@ -164,9 +160,7 @@ namespace Borlay.Iota.Library
             if (needBalance > totalBalance)
                 throw new NotEnoughBalanceException(needBalance, totalBalance);
 
-            //InputValidator.CheckTransferArray(transferItems);
-            if (!InputValidator.IsValidTransfer(transferItem))
-                throw new IotaException("transfer not valid");
+            InputValidator.ValidateTransfer(transferItem);
 
             var depositTransaction = CreateDepositTransaction(transferItem).ToArray();
 
