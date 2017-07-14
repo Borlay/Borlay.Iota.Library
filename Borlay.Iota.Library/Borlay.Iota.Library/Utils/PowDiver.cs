@@ -156,14 +156,12 @@ namespace Borlay.Iota.Library.Utils
 
             if (numberOfThreads <= 0)
             {
-                numberOfThreads = Environment.ProcessorCount; // - 1;
+                numberOfThreads = Environment.ProcessorCount - 1;
                 if (numberOfThreads < 1)
                 {
                     numberOfThreads = 1;
                 }
             }
-
-            //Thread[] workers = new Thread[numberOfThreads];
 
             List<Task> tasks = new List<Task>();
 
@@ -172,7 +170,6 @@ namespace Borlay.Iota.Library.Utils
 
                 int threadIndex = numberOfThreads;
                 var task = Task.Factory.StartNew(() =>
-                //Thread worker = (new Thread(() =>
                 {
 
                     ulong[] midCurlStateCopyLow = new ulong[CURL_STATE_LENGTH], midCurlStateCopyHigh = new ulong[CURL_STATE_LENGTH];
@@ -218,37 +215,15 @@ namespace Borlay.Iota.Library.Utils
                                 {
                                     transactionTrits[TRANSACTION_LENGTH - CURL_HASH_LENGTH + i] = (midCurlStateCopyLow[i] & outMask) == 0 ? 1 : (midCurlStateCopyHigh[i] & outMask) == 0 ? -1 : 0;
                                 }
-                                //syncObj.notifyAll();
                             }
                         }
                         break;
                     }
                 });
                 tasks.Add(task);
-                // workers[threadIndex] = worker;
-                //worker.Start();
             }
 
             await Task.WhenAll(tasks);
-
-            //try
-            //{
-            //    lock (syncObj)
-            //    {
-            //        if (state == RUNNING)
-            //        {
-            //            //syncObj.wait();
-            //        }
-            //    }
-            //}
-            //catch (Exception e)
-            //{
-            //    lock (syncObj)
-            //    {
-            //        state = CANCELLED;
-            //    }
-            //}
-            //return state == COMPLETED;
         }
 
         private static void transform(ulong[] curlStateLow, ulong[] curlStateHigh, ulong[] curlScratchpadLow, ulong[] curlScratchpadHigh)

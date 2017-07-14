@@ -230,13 +230,39 @@ namespace Borlay.Iota.Library
 
         public static string Pad(this string value, int size)
         {
+            return value.Pad('9', size);
+        }
+
+        public static string PadLast(this string value, int size)
+        {
+            value = value ?? "";
+            if (string.IsNullOrWhiteSpace(value))
+                value = "9";
+
+            var lastSimbol = value[value.Length - 1];
+            return value.Pad(lastSimbol, size);
+        }
+
+        public static string Pad(this string value, char simbol, int size)
+        {
             var pad = value ?? "";
-            while (pad.Length < size) pad += '9';
+            while (pad.Length < size) pad += simbol;
             return pad;
         }
 
         public static string SetApproveTransactions(this string trytes, string trunkTransaction, string branchTransaction)
         {
+            var trytesConstruct = trytes.Substring(0, 2430);
+            trytesConstruct += trunkTransaction;
+            trytesConstruct += branchTransaction;
+            trytesConstruct += EmptyHash();
+
+            return trytesConstruct;
+        }
+
+        public static string SetApproveTrunk(this string trytes, string trunkTransaction)
+        {
+            var branchTransaction = trytes.GetBranchTransaction();
             var trytesConstruct = trytes.Substring(0, 2430);
             trytesConstruct += trunkTransaction;
             trytesConstruct += branchTransaction;
@@ -257,6 +283,11 @@ namespace Borlay.Iota.Library
         public static string GetTrunkTransaction(this string trytes)
         {
             return trytes.Substring(2430, 81);
+        }
+
+        public static string GetBranchTransaction(this string trytes)
+        {
+            return trytes.Substring(2430 + 81, 81);
         }
 
         public static string EmptyHash(int length = 81)

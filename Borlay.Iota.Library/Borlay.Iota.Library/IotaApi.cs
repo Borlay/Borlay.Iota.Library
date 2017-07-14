@@ -19,12 +19,18 @@ namespace Borlay.Iota.Library
         /// </summary>
         public int MaxAddressIndex { get; set; }
 
-        public int NumberOfThreads { get; set; }
-
+        /// <summary>
+        /// Gets or sets the Depth
+        /// </summary>
         public int Depth { get; set; }
 
         /// <summary>
-        /// In milliseconds
+        /// Gets or sets the NonceSeeker
+        /// </summary>
+        public INonceSeeker NonceSeeker { get; set; }
+
+        /// <summary>
+        /// Gets or sets RebroadcastMaximumPowTime in milliseconds
         /// </summary>
         public int RebroadcastMaximumPowTime { get; set; }
 
@@ -45,16 +51,29 @@ namespace Borlay.Iota.Library
         {
         }
 
+        public IotaApi(string url, INonceSeeker nonceSeeker, int minWeightMagnitude = 15)
+            : this(new IriApi(url) { MinWeightMagnitude = minWeightMagnitude }, nonceSeeker)
+        {
+        }
+
         public IotaApi(IriApi iriApi)
+            : this(iriApi, new LocalNonceSeeker(iriApi.MinWeightMagnitude))
+        {
+        }
+
+        public IotaApi(IriApi iriApi, INonceSeeker nonceSeeker)
         {
             if (iriApi == null)
                 throw new ArgumentNullException(nameof(iriApi));
 
+            if (nonceSeeker == null)
+                throw new ArgumentNullException(nameof(nonceSeeker));
+
             this.iriApi = iriApi;
             this.MaxAddressIndex = 500;
-            this.NumberOfThreads = 0;
             this.Depth = 9;
             this.RebroadcastMaximumPowTime = 20000;
+            this.NonceSeeker = nonceSeeker;
         }
 
         /// <summary>
@@ -154,7 +173,7 @@ namespace Borlay.Iota.Library
 
             var transactionItems = transactionTrytes.Select(t => new TransactionItem(t)).ToArray();
 
-            for(int i = 0; i < transactionItems.Length; i++)
+            for (int i = 0; i < transactionItems.Length; i++)
             {
                 transactionItems[i].Persistence = states[i];
             }
@@ -172,7 +191,7 @@ namespace Borlay.Iota.Library
             var transactionItems = await GetTransactionItems(transactionHashes);
             return transactionItems;
         }
-         
+
         /// <summary>
         /// Renew address items balances
         /// </summary>
@@ -339,6 +358,15 @@ namespace Borlay.Iota.Library
 
         public async Task<string> Rebroadcast(string trytes, CancellationToken cancellationToken)
         {
+            if (string.IsNullOrWhiteSpace(trytes))
+                throw new ArgumentNullException(nameof(trytes));
+
+            if (cancellationToken == null)
+                throw new ArgumentNullException(nameof(cancellationToken));
+
+            if (NonceSeeker == null)
+                throw new NullReferenceException(nameof(NonceSeeker));
+
             while (true)
             {
                 try
@@ -350,22 +378,25 @@ namespace Borlay.Iota.Library
                     var diver = new PowDiver();
                     cts.CancelAfter(RebroadcastMaximumPowTime);
 
-                    var trunk = toApprove.TrunkTransaction;
-                    var branch = toApprove.BranchTransaction;
+                    //var trunk = toApprove.TrunkTransaction;
+                    //var branch = toApprove.BranchTransaction;
 
+                    var trunk = trytes.GetTrunkTransaction();
+                    var branch = toApprove.TrunkTransaction;
 
+                    var trytesToSend = (await NonceSeeker
+                        .SearchNonce(new string[] { trytes }, trunk, branch, cts.Token))
+                        .Single();
 
-                    trytes = trytes.SetApproveBranch(trunk);
-                    var trytesToSend = await diver.DoPow(trytes, IriApi.MinWeightMagnitude, NumberOfThreads, cts.Token);
+                    //trytes = trytes.SetApproveBranch(trunk);
+                    //var trytesToSend = await diver.DoPow(trytes, IriApi.MinWeightMagnitude, NumberOfThreads, cts.Token);
 
-                    if (cts.IsCancellationRequested)
-                        continue;
+                    cts.Token.ThrowIfCancellationRequested();
 
                     await IriApi.BroadcastTransactions(trytesToSend);
                     await IriApi.StoreTransactions(trytesToSend);
 
                     var transaction = new TransactionItem(trytesToSend);
-
                     return transaction.Hash;
                 }
                 catch (OperationCanceledException)
@@ -389,13 +420,21 @@ namespace Borlay.Iota.Library
             if (transactionTrytes == null)
                 throw new ArgumentNullException(nameof(transactionTrytes));
 
+            if (cancellationToken == null)
+                throw new ArgumentNullException(nameof(cancellationToken));
+
+            if (NonceSeeker == null)
+                throw new NullReferenceException(nameof(NonceSeeker));
+
             var toApprove = await IriApi.GetTransactionsToApprove(Depth);
 
             var trunk = toApprove.TrunkTransaction;
             var branch = toApprove.BranchTransaction;
 
-            var trytesToSend = await transactionTrytes
-                .DoPow(trunk, branch, IriApi.MinWeightMagnitude, NumberOfThreads, cancellationToken);
+            var trytesToSend = await NonceSeeker.SearchNonce(transactionTrytes, trunk, branch, cancellationToken);
+
+            //var trytesToSend = await transactionTrytes
+            //    .DoPow(trunk, branch, IriApi.MinWeightMagnitude, NumberOfThreads, cancellationToken);
 
             await BroadcastAndStore(trytesToSend);
             return trytesToSend;

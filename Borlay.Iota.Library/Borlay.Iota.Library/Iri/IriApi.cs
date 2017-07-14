@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Borlay.Iota.Library.Iri
 {
-    public class IriApi
+    public class IriApi : INonceSeeker
     {
         private readonly IGenericWebClient genericClient;
 
@@ -187,6 +187,12 @@ namespace Borlay.Iota.Library.Iri
                 throw new NullReferenceException(nameof(response));
 
             return response.RemovedNeighbors;
+        }
+
+
+        async Task<string[]> INonceSeeker.SearchNonce(string[] trytes, string trunkTransaction, string branchTransaction, CancellationToken cancellationToken)
+        {
+            return await AttachToTangle(trytes, trunkTransaction, branchTransaction, cancellationToken);
         }
 
     }
