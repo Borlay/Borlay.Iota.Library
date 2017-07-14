@@ -101,7 +101,7 @@ namespace Borlay.Iota.Library.Tests
         public async Task SendEmptyTransferTest()
         {
             var api = CreateIotaClient();
-            api.NonceSeeker = api.IriApi;
+
             //10000000
             var address = await api.GetAddress(TestSeed2, 1);
 

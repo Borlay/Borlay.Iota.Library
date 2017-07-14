@@ -37,7 +37,7 @@ namespace Borlay.Iota.Library.Models
         /// <summary>
         /// Gets or sets the private key
         /// </summary>
-        public int[] PrivateKey
+        public virtual int[] PrivateKey
         {
             get
             {

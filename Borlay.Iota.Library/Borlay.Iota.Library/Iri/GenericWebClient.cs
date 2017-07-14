@@ -21,7 +21,7 @@ namespace Borlay.Iota.Library.Iri
         public string Url { get; set; }
 
         /// <summary>
-        /// Sets or gets MaximumRetryCount. Default is 10.
+        /// Sets or gets MaximumRetryCount. Default is 10. Look at RequestErrorHandler for more handling.
         /// </summary>
         public int MaximumRetryCount { get; set; }
 
