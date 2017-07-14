@@ -101,6 +101,7 @@ namespace Borlay.Iota.Library.Tests
         public async Task SendEmptyTransferTest()
         {
             var api = CreateIotaClient();
+            api.NonceSeeker = api.IriApi;
             //10000000
             var address = await api.GetAddress(TestSeed2, 1);
 
@@ -108,8 +109,8 @@ namespace Borlay.Iota.Library.Tests
             {
                 Address = address.Address,
                 Value = 0,
-                Message = null, // "MESSAGETEST",
-                Tag = null// "TAGTEST"
+                Message = "MESSAGETEST",
+                Tag = "TAGTEST"
             };
 
             var transactionItem = await api.SendTransfer(transfer, CancellationToken.None);
@@ -199,8 +200,8 @@ namespace Borlay.Iota.Library.Tests
             {
                 Address = emptyAddress,
                 Value = 0,
-                Message = "",
-                Tag = ""
+                Message = null,
+                Tag = null
             };
 
             while (true)

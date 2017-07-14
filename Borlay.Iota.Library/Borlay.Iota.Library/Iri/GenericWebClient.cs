@@ -21,6 +21,16 @@ namespace Borlay.Iota.Library.Iri
         public string Url { get; set; }
 
         /// <summary>
+        /// Sets or gets MaximumRetryCount. Default is 10.
+        /// </summary>
+        public int MaximumRetryCount { get; set; }
+
+        /// <summary>
+        /// Gets or sets RequestErrorHandler
+        /// </summary>
+        public IRequestErrorHandler RequestErrorHandler { get; set; }
+
+        /// <summary>
         /// Gets or sets request log delegate
         /// </summary>
         public Action<string> Log { get; set; }
@@ -31,6 +41,8 @@ namespace Borlay.Iota.Library.Iri
                 throw new ArgumentNullException(nameof(url));
 
             this.Url = url;
+            this.MaximumRetryCount = 10;
+            this.RequestErrorHandler = new RequestErrorHandler();
         }
 
         /// <summary>
@@ -43,8 +55,37 @@ namespace Borlay.Iota.Library.Iri
         {
             string stringData = request.ToJson();
             Log?.Invoke($"Request: {stringData}");
-            var contentData = new StringContent(stringData, System.Text.Encoding.UTF8, "application/json");
 
+            Exception lastException = null;
+
+            for (int i = 0; i < MaximumRetryCount; i++)
+            {
+                try
+                {
+                    var content = new StringContent(stringData, System.Text.Encoding.UTF8, "application/json");
+                    var response = await RequestContentAsync<TResponse>(content, cancellationToken);
+                    return response;
+                }
+                catch(OperationCanceledException)
+                {
+                    throw;
+                }
+                catch(Exception e)
+                {
+                    lastException = e;
+                    var handled = await RequestErrorHandler?.HandleError(request, e, i + 1, cancellationToken);
+                    if (!handled)
+                        throw;
+
+                    cancellationToken.ThrowIfCancellationRequested();
+                }
+            }
+
+            throw new IotaException($"Max retry count reached whith message '{lastException?.Message}'", lastException);
+        }
+
+        private async Task<TResponse> RequestContentAsync<TResponse>(HttpContent content, CancellationToken cancellationToken) where TResponse : new()
+        {
             using (var client = new HttpClient())
             {
                 client.Timeout = TimeSpan.FromMinutes(30);
@@ -52,7 +93,7 @@ namespace Borlay.Iota.Library.Iri
 
                 try
                 {
-                    var postResponse = await client.PostAsync(Url, contentData, cancellationToken);
+                    var postResponse = await client.PostAsync(Url, content, cancellationToken);
                     var stringResult = await postResponse.Content.ReadAsStringAsync();
 
                     Log?.Invoke($"Request success: {postResponse.IsSuccessStatusCode}");
@@ -72,12 +113,6 @@ namespace Borlay.Iota.Library.Iri
                 catch (HttpRequestException ex)
                 {
                     throw new IotaWebException(ex.Message, ex);
-                    //using (var stream = ex.Response.GetResponseStream())
-                    //using (var reader = new StreamReader(stream))
-                    //{
-                    //    String errorResponse = reader.ReadToEnd();
-                    //    throw new IotaWebException(JsonConvert.DeserializeObject<IriErrorResponse>(errorResponse).Error, ex);
-                    //}
                 }
             }
         }
