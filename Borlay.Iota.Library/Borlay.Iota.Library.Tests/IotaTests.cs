@@ -374,10 +374,11 @@ namespace Borlay.Iota.Library.Tests
         public async Task ParallelAsyncTest()
         {
             var list = new ConcurrentBag<bool>();
-            var range = Enumerable.Range(0, 100);
+            var range = Enumerable.Range(0, 1000);
             await range.ParallelAsync(async u =>
             {
-                await Task.Yield();
+                await TaskIota.Yield().ConfigureAwait(false);
+                //await Task.Yield();
                 Thread.Sleep(100);
                 list.Add(true);
             });

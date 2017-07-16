@@ -4,15 +4,17 @@
     <TargetFramework>netstandard1.1</TargetFramework>
     <Authors>Paulius Kanoverskis</Authors>
     <Company>Paulius Kanoverskis</Company>
-    <Description>IOTA wallet library for .NET Standard framework. Compatible with .net 4.5 and .net core 1.0</Description>
+    <Description>The IOTA wallet library for .NET Standard framework. Compatible with .net 4.5 and .net core 1.0</Description>
     <RepositoryUrl>https://github.com/Borlay/Borlay.Iota.Library</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>borlay iota wallet</PackageTags>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageProjectUrl>https://github.com/Borlay/Borlay.Iota.Library</PackageProjectUrl>
-    <Version>1.0.6</Version>
-    <PackageReleaseNotes>Changed to .NET Standard 1.1 to suport .net45
-Async address generation fixes to not block UI</PackageReleaseNotes>
+    <Version>1.0.7</Version>
+    <PackageReleaseNotes>- Implemented NonceSeeker to choice where to run pow
+- Default number of thread decreased = ProcessCount - 1;
+- Exception handling for GenericWebClient to retry request. Default retry is 3
+- Private key property is virtual to override and store in SecureString or smth.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
