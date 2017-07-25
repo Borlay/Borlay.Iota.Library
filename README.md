@@ -6,6 +6,12 @@ It also can do the proof of work for you.
 http://iota.org
 https://github.com/iotaledger
 
+# Donate
+
+```iota
+GFWIUIMANYAF99BGZOPJDSFWNSTJNQOQRTKGEMBCBAOKNSRXRNUSHYKYMQBGIKHDQNMCYGHEUL9TVF9L9BBMMESNBP
+```
+
 ## Technologies
 
 The Borlay.Iota.Library is writen for [.NET Standard 1.1](https://docs.microsoft.com/en-us/dotnet/standard/net-standard) framework. It can be used in .net 4.5 and .net core 1.0 as well. For full .net frameworks support visit [.NET Standard 1.1](https://docs.microsoft.com/en-us/dotnet/standard/net-standard)
