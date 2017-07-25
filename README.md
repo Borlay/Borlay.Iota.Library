@@ -1,4 +1,4 @@
-# Introduction
+## Introduction
 
 The Borlay.Iota.Library implements [[IOTA IRI api calls]](https://github.com/iotaledger/wiki/blob/master/api-proposal.md).
 It also can do the proof of work for you.
@@ -6,25 +6,25 @@ It also can do the proof of work for you.
 http://iota.org
 https://github.com/iotaledger
 
-# Donate
+### Donate
 
 ```iota
 GFWIUIMANYAF99BGZOPJDSFWNSTJNQOQRTKGEMBCBAOKNSRXRNUSHYKYMQBGIKHDQNMCYGHEUL9TVF9L9BBMMESNBP
 ```
 
-## Technologies
+### Technologies
 
 The Borlay.Iota.Library is writen for [.NET Standard 1.1](https://docs.microsoft.com/en-us/dotnet/standard/net-standard) framework. It can be used in .net 4.5 and .net core 1.0 as well. For full .net frameworks support visit [.NET Standard 1.1](https://docs.microsoft.com/en-us/dotnet/standard/net-standard)
 
 
-## Nuget
+### Nuget
 
 ```PowerShell
 Install-Package Borlay.Iota.Library
 ```
 [Borlay.Iota.Library nuget](https://www.nuget.org/packages/Borlay.Iota.Library/)
 
-## Getting started
+### Getting started
 
 Get the address with the balance and the transactions hashes
 ```cs
@@ -71,7 +71,7 @@ By default the pow will run on local pc but you can change to run it on iri
 api.NonceSeeker = api.IriApi;
 ```
 
-# POW
+### POW
 
 You can do the pow (attachToTangle) like this
 ```cs
