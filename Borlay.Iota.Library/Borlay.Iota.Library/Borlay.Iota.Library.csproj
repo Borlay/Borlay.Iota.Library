@@ -10,11 +10,9 @@
     <PackageTags>borlay iota wallet</PackageTags>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageProjectUrl>https://github.com/Borlay/Borlay.Iota.Library</PackageProjectUrl>
-    <Version>1.0.7</Version>
-    <PackageReleaseNotes>- Implemented NonceSeeker to choice where to run pow
-- Default number of thread decreased = ProcessCount - 1;
-- Exception handling for GenericWebClient to retry request. Default retry is 3
-- Private key property is virtual to override and store in SecureString or smth.</PackageReleaseNotes>
+    <Version>1.0.8</Version>
+    <PackageReleaseNotes>- Methods renamed - Send -&gt; Attach and Rebroadcast -&gt; FastReattach
+- Added version header</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

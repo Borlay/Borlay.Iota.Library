@@ -344,6 +344,12 @@ namespace Borlay.Iota.Library
             return transactionResult;
         }
 
+        /// <summary>
+        /// Fast transaction reattach. It approves only branch transaction.
+        /// </summary>
+        /// <param name="transactionItems">Transaction items to reattach</param>
+        /// <param name="cancellationToken">The CancellationToken</param>
+        /// <returns></returns>
         public async Task<string> FastReattach(IEnumerable<TransactionItem> transactionItems, CancellationToken cancellationToken)
         {
             var transactionItem = transactionItems.FirstOrDefault(t => t.CurrentIndex == "0");
@@ -357,7 +363,7 @@ namespace Borlay.Iota.Library
         }
 
         /// <summary>
-        /// Fast transaction rebroadcast. It approves only branch transaction. For broadcast use 
+        /// Fast transaction reattach. It approves only branch transaction.
         /// </summary>
         /// <param name="trytes">Trytes to rebroadcast</param>
         /// <param name="cancellationToken">The CancellationToken</param>
