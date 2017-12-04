@@ -309,10 +309,10 @@ namespace Borlay.Iota.Library
         /// <param name="remainderAddress">The remainder where remaind amount is send</param>
         /// <param name="cancellationToken">The cancellation token</param>
         /// <returns></returns>
-        public async Task<TransactionItem[]> SendTransactions(TransferItem transferItem, IEnumerable<AddressItem> addressItems, string remainderAddress, CancellationToken cancellationToken)
+        public async Task<TransactionItem[]> AttachTransfer(TransferItem transferItem, IEnumerable<AddressItem> addressItems, string remainderAddress, CancellationToken cancellationToken)
         {
             await RenewBalances(addressItems.ToArray());
-            return await SendTransferWithoutRenewBalance(transferItem, addressItems, remainderAddress, cancellationToken);
+            return await AttachTransferWithoutRenewBalance(transferItem, addressItems, remainderAddress, cancellationToken);
         }
 
         /// <summary>
@@ -323,10 +323,10 @@ namespace Borlay.Iota.Library
         /// <param name="remainderAddress">The remainder where remaind amount is send</param>
         /// <param name="cancellationToken">The cancellation token</param>
         /// <returns></returns>
-        public async Task<TransactionItem[]> SendTransferWithoutRenewBalance(TransferItem transferItem, IEnumerable<AddressItem> addressItems, string remainderAddress, CancellationToken cancellationToken)
+        public async Task<TransactionItem[]> AttachTransferWithoutRenewBalance(TransferItem transferItem, IEnumerable<AddressItem> addressItems, string remainderAddress, CancellationToken cancellationToken)
         {
             var transactionItems = transferItem.CreateTransactions(remainderAddress, addressItems.ToArray());
-            var resultTransactionItems = await SendTransactions(transactionItems, cancellationToken);
+            var resultTransactionItems = await AttachTransactions(transactionItems, cancellationToken);
             return resultTransactionItems;
         }
 
@@ -336,15 +336,15 @@ namespace Borlay.Iota.Library
         /// <param name="transactions">Transactions to send</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns></returns>
-        public async Task<TransactionItem[]> SendTransactions(IEnumerable<TransactionItem> transactions, CancellationToken cancellationToken)
+        public async Task<TransactionItem[]> AttachTransactions(IEnumerable<TransactionItem> transactions, CancellationToken cancellationToken)
         {
             var transactionTrytes = transactions.GetTrytes();
-            var trytes = await SendTrytes(transactionTrytes, cancellationToken);
+            var trytes = await AttackTrytes(transactionTrytes, cancellationToken);
             var transactionResult = trytes.Select(t => new TransactionItem(t)).ToArray();
             return transactionResult;
         }
 
-        public async Task<string> Rebroadcast(IEnumerable<TransactionItem> transactionItems, CancellationToken cancellationToken)
+        public async Task<string> FastReattach(IEnumerable<TransactionItem> transactionItems, CancellationToken cancellationToken)
         {
             var transactionItem = transactionItems.FirstOrDefault(t => t.CurrentIndex == "0");
 
@@ -352,11 +352,17 @@ namespace Borlay.Iota.Library
                 throw new Exception("Transaction with index '0' not found");
 
             var transactionTrytes = transactionItem.ToTransactionTrytes();
-            var trytesResult = await Rebroadcast(transactionTrytes, cancellationToken);
+            var trytesResult = await FastReattach(transactionTrytes, cancellationToken);
             return trytesResult;
         }
 
-        public async Task<string> Rebroadcast(string trytes, CancellationToken cancellationToken)
+        /// <summary>
+        /// Fast transaction rebroadcast. It approves only branch transaction. For broadcast use 
+        /// </summary>
+        /// <param name="trytes">Trytes to rebroadcast</param>
+        /// <param name="cancellationToken">The CancellationToken</param>
+        /// <returns></returns>
+        public async Task<string> FastReattach(string trytes, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(trytes))
                 throw new ArgumentNullException(nameof(trytes));
@@ -375,11 +381,7 @@ namespace Borlay.Iota.Library
                     cancellationToken.Register(() => cts.Cancel());
 
                     var toApprove = await IriApi.GetTransactionsToApprove(Depth);
-                    var diver = new PowDiver();
                     cts.CancelAfter(RebroadcastMaximumPowTime);
-
-                    //var trunk = toApprove.TrunkTransaction;
-                    //var branch = toApprove.BranchTransaction;
 
                     var trunk = trytes.GetTrunkTransaction();
                     var branch = toApprove.TrunkTransaction;
@@ -387,9 +389,6 @@ namespace Borlay.Iota.Library
                     var trytesToSend = (await NonceSeeker
                         .SearchNonce(new string[] { trytes }, trunk, branch, cts.Token))
                         .Single();
-
-                    //trytes = trytes.SetApproveBranch(trunk);
-                    //var trytesToSend = await diver.DoPow(trytes, IriApi.MinWeightMagnitude, NumberOfThreads, cts.Token);
 
                     cts.Token.ThrowIfCancellationRequested();
 
@@ -410,12 +409,12 @@ namespace Borlay.Iota.Library
         }
 
         /// <summary>
-        /// Attach, broadcast and store trytes to tangle
+        /// Approve transactions, do pow, broadcast and store trytes to tangle
         /// </summary>
         /// <param name="transactionTrytes"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public virtual async Task<string[]> SendTrytes(string[] transactionTrytes, CancellationToken cancellationToken)
+        public virtual async Task<string[]> AttackTrytes(string[] transactionTrytes, CancellationToken cancellationToken)
         {
             if (transactionTrytes == null)
                 throw new ArgumentNullException(nameof(transactionTrytes));

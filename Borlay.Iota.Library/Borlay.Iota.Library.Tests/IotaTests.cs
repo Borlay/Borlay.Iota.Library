@@ -456,7 +456,7 @@ namespace Borlay.Iota.Library.Tests
 
             address2.Balance = 20;
 
-            await api.SendTransferWithoutRenewBalance(new TransferItem()
+            await api.AttachTransferWithoutRenewBalance(new TransferItem()
             {
                 Address = address1.Address,
                 Value = 10,
@@ -487,7 +487,7 @@ namespace Borlay.Iota.Library.Tests
             // "http://node.deviceproof.org:14265"
             // "http://88.198.230.98:14265"
             // "http://iota.digits.blue:14265"
-            return new IotaApi("http://iota.digits.blue:14265");
+            return new IotaApi("http://iota.bitfinex.com:80");
         }
 
         private IEnumerable<string> BroadcastUrls()

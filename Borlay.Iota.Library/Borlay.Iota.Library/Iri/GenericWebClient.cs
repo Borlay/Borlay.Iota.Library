@@ -90,6 +90,7 @@ namespace Borlay.Iota.Library.Iri
             {
                 client.Timeout = TimeSpan.FromMinutes(30);
                 client.DefaultRequestHeaders.Add("User-Agent", "borlay.iota.netcore");
+                client.DefaultRequestHeaders.Add("X-IOTA-API-Version", "1");
 
                 try
                 {

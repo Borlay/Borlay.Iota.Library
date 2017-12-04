@@ -24,7 +24,7 @@ namespace Borlay.Iota.Library
         public static async Task<TransactionItem[]> SendTransfer(this IotaApi api, TransferItem transferItem, string seed, int startFromIndex, CancellationToken cancellationToken)
         {
             var transactionItemsToSend = await api.CreateTransactions(transferItem, seed, startFromIndex, cancellationToken);
-            var transactionItems = await api.SendTransactions(transactionItemsToSend, cancellationToken);
+            var transactionItems = await api.AttachTransactions(transactionItemsToSend, cancellationToken);
             return transactionItems;
         }
 
@@ -38,7 +38,7 @@ namespace Borlay.Iota.Library
         public static Task<TransactionItem[]> SendTransfer(this IotaApi api, TransferItem transferItem, CancellationToken cancellationToken)
         {
             var transactionItems = transferItem.CreateTransactions();
-            return api.SendTransactions(transactionItems, cancellationToken);
+            return api.AttachTransactions(transactionItems, cancellationToken);
         }
 
         public static string[] GetTrytes(this IEnumerable<TransactionItem> transactions)
