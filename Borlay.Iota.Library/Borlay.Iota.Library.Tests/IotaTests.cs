@@ -487,7 +487,7 @@ namespace Borlay.Iota.Library.Tests
             // "http://node.deviceproof.org:14265"
             // "http://88.198.230.98:14265"
             // "http://iota.digits.blue:14265"
-            return new IotaApi("http://iota.bitfinex.com:80");
+            return new IotaApi("http://eugeneoldisoft.iotasupport.com:14265");
         }
 
         private IEnumerable<string> BroadcastUrls()
