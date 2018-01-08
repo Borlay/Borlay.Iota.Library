@@ -115,7 +115,7 @@ namespace Borlay.Iota.Library.Crypto
             int[] myFinalIntegerArray = new int[inputElements.Length / len];
             for (int cnt = 0; cnt < inputElements.Length; cnt += len)
             {
-                myFinalIntegerArray[cnt / len] = BitConverter.ToInt32(inputElements, cnt);
+                myFinalIntegerArray[cnt / len] = BitConverter.ToInt32(inputElements.ToArray(), cnt);
             }
             return myFinalIntegerArray;
         }

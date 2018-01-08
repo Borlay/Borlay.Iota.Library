@@ -18,7 +18,25 @@ namespace Borlay.Iota.Library.Tests
     private string expected = "OXJCNFHUNAHWDLKKPELTBFUCVW9KLXKOGWERKTJXQMXTKFKNWNNXYD9DMJJABSEIONOSJTTEVKVDQEWTW";
 
         [TestMethod]
-        public void Test()
+        public void WordsToTritsAndBack()
+        {
+            var ints = new int[]
+            {
+                9, 9, 5, 9, 5, 9, 5, 9, 5, 9, 5, 9
+            };
+            var trits =  Words.words_to_trits(ints);
+
+            var bints = Words.trits_to_words(trits);
+
+            for(int i = 0; i < ints.Length; i++)
+            {
+                var swapBack = Words.swap32(bints[i]);
+                Assert.AreEqual(ints[i], (int)swapBack);
+            }
+        }
+
+        [TestMethod]
+        public void KerlHash()
         {
             var trits = Converter.GetTrits(input);
             var kerl = new Kerl();
@@ -28,7 +46,6 @@ namespace Borlay.Iota.Library.Tests
             kerl.Squeeze(hashTrits, 0, Curl.HASH_LENGTH);
             var hash = Converter.GetTrytes(hashTrits);
             Assert.AreEqual(expected, hash);
-            //assert.deepEqual(test.expected, hash);
         }
     }
 }

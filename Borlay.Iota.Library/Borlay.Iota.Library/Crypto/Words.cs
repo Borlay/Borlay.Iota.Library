@@ -35,9 +35,9 @@ namespace Borlay.Iota.Library.Crypto
         /// JS's shift operators only work on 32 bit integers
         /// ours is up to 33 or 34 bits though, so
         /// we need to implement shifting manually
-        public static ulong rshift(ulong number, int shift)
+        public static uint rshift(ulong number, long shift)
         {
-            return (ulong)((long)(number / Math.Pow(2, shift)) >> 0);
+            return (uint)((long)(number / Math.Pow(2, shift)) >> 0);
         }
 
         /// swaps endianness
@@ -51,17 +51,17 @@ namespace Borlay.Iota.Library.Crypto
         /// add with carry
         public static object[] full_add(uint lh, uint rh, bool carry)
         {
-            var v = lh + rh;
-            var l =  (uint)((int)(v) << 32) & 0xFFFFFFFF; //(rshift(v, 32)) & 0xFFFFFFFF;
-            var r = (uint)((int)(v & 0xFFFFFFFF) >> 0);
+            ulong v = (ulong)lh + (ulong)rh;
+            var l = (rshift(v, 32)) & 0xFFFFFFFF;  //(uint)((int)(v) << 32) & 0xFFFFFFFF; //(rshift(v, 32)) & 0xFFFFFFFF;
+            var r = (uint)((long)(v & 0xFFFFFFFF) >> 0);
             var carry1 = l != 0;
 
             if (carry)
             {
-                v = r + 1;
+                v = (ulong)r + (ulong)1;
             }
-            l = (uint)((int)(v) << 32) & 0xFFFFFFFF; // (rshift(v, 32)) & 0xFFFFFFFF;
-            r = (uint)((int)(v & 0xFFFFFFFF) >> 0);
+            l = (rshift(v, 32)) & 0xFFFFFFFF;// (uint)((int)(v) << 32) & 0xFFFFFFFF; // (rshift(v, 32)) & 0xFFFFFFFF;
+            r = (uint)((long)(v & 0xFFFFFFFF) >> 0);
             var carry2 = l != 0;
 
             return new object[] { r, carry1 || carry2 };
@@ -77,7 +77,8 @@ namespace Borlay.Iota.Library.Crypto
         }
 
         /// subtracts rh from_base
-        public static void bigint_sub(uint[] _base, uint[] rh) {
+        public static void bigint_sub(uint[] _base, uint[] rh)
+        {
             var noborrow = true;
 
             for (var i = 0; i < _base.Length; i++)
@@ -234,13 +235,13 @@ namespace Borlay.Iota.Library.Crypto
                     //multiply by radix
                     {
                         var sz = size;
-                        ulong carry = 0;
+                        uint carry = 0;
 
                         for (var j = 0; j < sz; j++)
                         {
-                            var v = _base[j] * RADIX + carry;
-                            carry = rshift((ulong)v, 32);
-                            _base[j] = (uint)((int)(v & 0xFFFFFFFF) >> 0);
+                            ulong v = (ulong)_base[j] * (ulong)RADIX + (ulong)carry;
+                            carry = rshift(v, 32);
+                            _base[j] = (uint)((long)(v & 0xFFFFFFFF) >> 0);
                         }
 
                         if (carry > 0) {
