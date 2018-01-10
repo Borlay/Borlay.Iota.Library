@@ -81,12 +81,12 @@ namespace Borlay.Iota.Library.Tests
 
             var bytes = Kerl.ConvertToByteArray(ints);
 
-            Assert.AreEqual((byte)0, bytes[0]);
+            Assert.AreEqual((byte)9, bytes[0]);
             Assert.AreEqual((byte)0, bytes[1]);
             Assert.AreEqual((byte)0, bytes[2]);
-            Assert.AreEqual((byte)9, bytes[3]);
+            Assert.AreEqual((byte)0, bytes[3]);
 
-            Assert.AreEqual((byte)5, bytes[7]);
+            Assert.AreEqual((byte)5, bytes[4]);
         }
 
         [TestMethod]
