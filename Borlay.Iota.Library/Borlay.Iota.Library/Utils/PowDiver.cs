@@ -34,6 +34,9 @@ namespace Borlay.Iota.Library.Utils
         public const int RUNNING = 0;
         public const int CANCELLED = 1;
         public const int COMPLETED = 2;
+        
+        // The number of iterations of POW required
+        private const int REQUIRED_ROUNDS = 81;
 
         public volatile int state;
         public object syncObj = new object();
@@ -229,7 +232,7 @@ namespace Borlay.Iota.Library.Utils
         private static void transform(ulong[] curlStateLow, ulong[] curlStateHigh, ulong[] curlScratchpadLow, ulong[] curlScratchpadHigh)
         {
             int curlScratchpadIndex = 0;
-            for (int round = 27; round-- > 0;)
+            for (int round = REQUIRED_ROUNDS; round-- > 0;)
             {
                 System.Array.Copy(curlStateLow, 0, curlScratchpadLow, 0, CURL_STATE_LENGTH);
                 System.Array.Copy(curlStateHigh, 0, curlScratchpadHigh, 0, CURL_STATE_LENGTH);
