@@ -102,9 +102,24 @@ namespace Borlay.Iota.Library.Utils
             transactionItem.SignatureFragment = Converter.ToTrytes(firstSignedFragment);
         }
 
+        /// <summary>
+        /// Create a unix date time by using the number of seconds from 01/01/1970.
+        /// </summary>
+        /// <returns></returns>
         internal static long CreateTimeStampNow()
         {
-            var timestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalMilliseconds;
+            var timestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+            return timestamp; // 1515510395;
+        }
+
+        /// <summary>
+        /// Calculates the number of milliseconds from 01/01/2017
+        /// This is used for the attachment time where as the timestamp is a unix style and should use <see cref="CreateTimeStampNow"/>
+        /// </summary>
+        /// <returns></returns>
+        internal static long CreateAttachmentTimeStampNow()
+        {
+            var timestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
             return timestamp; // 1499592594121;
         }
     }
