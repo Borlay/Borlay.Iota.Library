@@ -9,11 +9,11 @@ namespace Borlay.Iota.Library.Crypto
     public class Kerl
     {
         public const int BIT_HASH_LENGTH = 384;
-        private Sha3Digest sha3Digest;
+        private KeccakDigest sha3Digest;
 
         public Kerl()
         {
-            sha3Digest = new Sha3Digest(BIT_HASH_LENGTH);
+            sha3Digest = new KeccakDigest(BIT_HASH_LENGTH);
         }
 
         public void Initialize()
@@ -44,7 +44,7 @@ namespace Borlay.Iota.Library.Crypto
                 var wordsToAbsorb = Words.trits_to_words(trit_state);
 
 
-                var wordArray = ConvertIntArrayToByteArray(wordsToAbsorb);
+                var wordArray = ConvertToByteArray(wordsToAbsorb);
                 sha3Digest.BlockUpdate(wordArray, 0, wordArray.Length);
 
                 // absorb the trit stat as wordarray
@@ -69,9 +69,8 @@ namespace Borlay.Iota.Library.Crypto
 
                 // get the hash digest
                 var kCopy = (Sha3Digest)sha3Digest.Copy();
-                byte[] final = new byte[Curl.HASH_LENGTH*4];
+                byte[] final = new byte[48];
                 var fLen = kCopy.DoFinal(final, 0);
-                final = final.Take(fLen).ToArray();
 
                 // Convert words to trits and then map it into the internal state
                 var trit_state = Words.words_to_trits(ConvertToInt32Array(final));
@@ -97,27 +96,46 @@ namespace Borlay.Iota.Library.Crypto
         }
 
 
-        public byte[] ConvertIntArrayToByteArray(uint[] inputElements)
+        public static byte[] ConvertToByteArray(uint[] inputInts)
         {
             var len = 4;
-            byte[] myFinalBytes = new byte[inputElements.Length * len];
-            for (int cnt = 0; cnt < inputElements.Length; cnt++)
+            byte[] byteArray = new byte[inputInts.Length * len];
+
+            for (int i = 0; i < inputInts.Length; i++)
             {
-                byte[] myBytes = BitConverter.GetBytes(inputElements[cnt]).ToArray();
-                Array.Copy(myBytes, 0, myFinalBytes, cnt * len, len);
+                var bytes = BitConverter.GetBytes(inputInts[i]);
+                if (!BitConverter.IsLittleEndian)
+                    Array.Reverse(bytes);
+                Array.Copy(bytes, 0, byteArray, i * len, len);
+
             }
-            return myFinalBytes;
+
+            return byteArray;
         }
 
-        public int[] ConvertToInt32Array(byte[] inputElements)
+        public static int[] ConvertToInt32Array(byte[] inputBytes)
         {
             var len = 4;
-            int[] myFinalIntegerArray = new int[inputElements.Length / len];
-            for (int cnt = 0; cnt < inputElements.Length; cnt += len)
+            int[] intArray = new int[inputBytes.Length / len];
+
+            for(int i = 0; i < intArray.Length; i++)
             {
-                myFinalIntegerArray[cnt / len] = BitConverter.ToInt32(inputElements.ToArray(), cnt);
+                var bytes = new byte[4];
+                Array.Copy(inputBytes, i * len, bytes, 0, len);
+                var value = ConvertToInt32(bytes);
+                intArray[i] = value;
             }
-            return myFinalIntegerArray;
+
+            return intArray;
+        }
+
+        public static int ConvertToInt32(byte[] bytes)
+        {
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(bytes);
+
+            int result = BitConverter.ToInt32(bytes, 0);
+            return result;
         }
 
     }
