@@ -1,8 +1,8 @@
 
 # Attention
-For now this library doesn't work. IOTA changed encryption (Curl) and theses changes in this library are not implemented yet.
+
 ```diff
-- this will be highlighted in red
+- For now this library is not working. IOTA changed encryption (Curl) and theses changes in this library are not implemented yet.
 ```
 
 ## Introduction
@@ -16,7 +16,7 @@ https://github.com/iotaledger
 ### Donate
 
 ```iota
-VKONPGYJLOB9TJVJTSAJBXWDSYSUUI9NWXZTQ9KGFSNXTQLCXTHFBCXRPCFKQFSJMCWMYEW9BAUXAMRYQSYV9FIRUP
+soon
 ```
 
 ### Technologies
