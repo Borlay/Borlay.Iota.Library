@@ -1,7 +1,7 @@
 
 # Attention
 For now this library doesn't work. IOTA changed encryption (Curl) and theses changes in this library are not implemented yet.
-![#f03c15](red color) `#f03c15`
+- ![#f03c15](red color) `#f03c15`
 
 ## Introduction
 
