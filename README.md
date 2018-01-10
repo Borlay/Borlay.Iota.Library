@@ -1,9 +1,8 @@
 
 # Attention
 
-```diff
-- For now this library is not working. IOTA changed encryption (Curl) and theses changes in this library are not implemented yet.
-```
+For now this library is not working. IOTA changed encryption (Curl) and theses changes in this library are not implemented yet.
+
 
 ## Introduction
 
