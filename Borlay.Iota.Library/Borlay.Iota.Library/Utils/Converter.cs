@@ -356,5 +356,56 @@ namespace Borlay.Iota.Library.Utils
                 }
             }
         }
+
+        /// <summary>
+        /// Converts ascii to trytes
+        /// </summary>
+        /// <param name="input">The ascii string.</param>
+        public static string AsciiToTrytes(string input)
+        {
+            string trytes = "";
+            for (var i = 0; i < input.Length; i++)
+            {
+                var asciiValue = input[i];
+
+                // If not recognizable ASCII character, return null
+                if (asciiValue > 255)
+                {
+                    //asciiValue = 32
+                    return null;
+                }
+
+                var firstValue = asciiValue % 27;
+                var secondValue = (asciiValue - firstValue) / 27;
+
+                string trytesValue = $"{Constants.TryteAlphabet[firstValue]}{Constants.TryteAlphabet[secondValue]}";
+
+                trytes += trytesValue;
+            }
+            return trytes;
+        }
+
+        /// <summary>
+        /// Converts trytes string to ascii string
+        /// </summary>
+        /// <param name="input">The trytes string.</param>
+        public static string TrytesToAscii(string input)
+        {
+            string asciiString = "";
+
+            for (var i = 0; i < input.Length; i += 2)
+            {
+                var trytes = $"{input[i]}{input[i + 1]}";
+
+                var firstValue = Constants.TryteAlphabet.IndexOf(trytes[0]);
+                var secondValue = Constants.TryteAlphabet.IndexOf(trytes[1]);
+                var decimalValue = firstValue + secondValue * 27;
+                var character = (char)decimalValue;
+
+                asciiString += character;
+            }
+
+            return asciiString;
+        }
     }
 }
