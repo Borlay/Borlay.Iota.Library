@@ -82,13 +82,14 @@ namespace Borlay.Iota.Library
         /// </summary>
         /// <param name="seed">Seed</param>
         /// <param name="index">Address index</param>
+        /// <param name="security">Address security (1, 2, 3). Use 2 if you don't know what to use</param>
         /// <returns></returns>
-        public async Task<AddressItem> GetAddress(string seed, int index)
+        public async Task<AddressItem> GetAddress(string seed, int index, int security = 2)
         {
             InputValidator.CheckIfValidSeed(seed);
             seed = InputValidator.PadSeedIfNecessary(seed);
 
-            var addressItem = await GenerateAddressAsync(seed, index, CancellationToken.None);
+            var addressItem = await GenerateAddressAsync(seed, index, security, CancellationToken.None);
             await iriApi.RenewBalances(addressItem);
             return addressItem;
         }
@@ -99,9 +100,10 @@ namespace Borlay.Iota.Library
         /// <param name="seed">Seed</param>
         /// <param name="index">Address index to start</param>
         /// <param name="count">Address count to generate</param>
+        /// <param name="security">Address security (1, 2, 3). Use 2 if you don't know what to use</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns></returns>
-        public async Task<AddressItem[]> GetAddresses(string seed, int index, int count, CancellationToken cancellationToken)
+        public async Task<AddressItem[]> GetAddresses(string seed, int index, int count, int security, CancellationToken cancellationToken)
         {
             InputValidator.CheckIfValidSeed(seed);
             seed = InputValidator.PadSeedIfNecessary(seed);
@@ -109,7 +111,7 @@ namespace Borlay.Iota.Library
             var tasks = new List<Task<AddressItem>>();
             for (var i = index; i < count + index; i++)
             {
-                var task = GenerateAddressAsync(seed, i, cancellationToken);
+                var task = GenerateAddressAsync(seed, i, security, cancellationToken);
                 tasks.Add(task);
             }
             var addressItems = await Task.WhenAll(tasks);
@@ -123,21 +125,22 @@ namespace Borlay.Iota.Library
             return addressItems.ToArray();
         }
 
-        
+
 
         /// <summary>
         /// Generates an address and renews transactions.
         /// </summary>
         /// <param name="seed">The seed from which an address should be generated</param>
         /// <param name="index">The index of the address</param>
+        /// <param name="security">Address security (1, 2, 3). Use 2 if you don't know what to use</param>
         /// <param name="cancellationToken">The CancellationToken</param>
         /// <returns></returns>
-        private async Task<AddressItem> GenerateAddressAsync(string seed, int index, CancellationToken cancellationToken)
+        private async Task<AddressItem> GenerateAddressAsync(string seed, int index, int security, CancellationToken cancellationToken)
         {
             await TaskIota.Yield().ConfigureAwait(false);
             // need yield because new address generation is very costly
 
-            var addressItem = IotaUtils.GenerateAddress(seed, index, 2, false, cancellationToken);
+            var addressItem = IotaUtils.GenerateAddress(seed, index, security, false, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
 
             await RenewTransactions(addressItem);
@@ -226,7 +229,7 @@ namespace Borlay.Iota.Library
         {
             for (int i = startFromIndex; i < MaxAddressIndex; i += 10)
             {
-                var addressItems = await GetAddresses(seed, i, 10, cancellationToken);
+                var addressItems = await GetAddresses(seed, i, 10, 2, cancellationToken);
                 foreach (var addressItem in addressItems)
                 {
                     if (addressItem.Balance > 0 || addressItem.TransactionCount == 0)
@@ -245,7 +248,7 @@ namespace Borlay.Iota.Library
             List<AddressItem> addressList = new List<AddressItem>();
             for (int i = startFromIndex; i < MaxAddressIndex; i += 10)
             {
-                var addressItems = await GetAddresses(seed, i, 10, cancellationToken);
+                var addressItems = await GetAddresses(seed, i, 10, 2, cancellationToken);
                 if (addressItems.All(a => a.TransactionCount == 0))
                     break;
 
