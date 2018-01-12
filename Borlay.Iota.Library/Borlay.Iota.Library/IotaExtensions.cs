@@ -66,7 +66,7 @@ namespace Borlay.Iota.Library
 
         private static IEnumerable<TransactionItem> CreateDepositTransaction(TransferItem transferItem)
         {
-            var timestamp = IotaApiUtils.CreateTimeStampNow().ToString();
+            var timestamp = IotaUtils.CreateTimeStampNow().ToString();
             var tag = transferItem.Tag.ValidateTrytes(nameof(transferItem.Tag)).Pad(27);
 
             var messages = ChunksUpto(transferItem.Message, 2187).ToArray();
@@ -100,7 +100,7 @@ namespace Borlay.Iota.Library
                 if (addressItem.Balance <= 0)
                     continue;
 
-                var timestamp = IotaApiUtils.CreateTimeStampNow().ToString();
+                var timestamp = IotaUtils.CreateTimeStampNow().ToString();
 
                 var amount = addressItem.Balance;
                 withdrawAmount -= amount;

@@ -1,4 +1,5 @@
-﻿using Borlay.Iota.Library.Exceptions;
+﻿using Borlay.Iota.Library.Crypto;
+using Borlay.Iota.Library.Exceptions;
 using Borlay.Iota.Library.Iri;
 using Borlay.Iota.Library.Models;
 using Borlay.Iota.Library.Utils;
@@ -46,12 +47,12 @@ namespace Borlay.Iota.Library
         /// </summary>
         public string Url => iriApi.WebClient.Url;
 
-        public IotaApi(string url, int minWeightMagnitude = 15)
+        public IotaApi(string url, int minWeightMagnitude = 14)
             : this(new IriApi(url) { MinWeightMagnitude = minWeightMagnitude })
         {
         }
 
-        public IotaApi(string url, INonceSeeker nonceSeeker, int minWeightMagnitude = 15)
+        public IotaApi(string url, INonceSeeker nonceSeeker, int minWeightMagnitude = 14)
             : this(new IriApi(url) { MinWeightMagnitude = minWeightMagnitude }, nonceSeeker)
         {
         }
@@ -87,7 +88,7 @@ namespace Borlay.Iota.Library
             InputValidator.CheckIfValidSeed(seed);
             seed = InputValidator.PadSeedIfNecessary(seed);
 
-            var addressItem = await NewAddressAsync(seed, index, CancellationToken.None);
+            var addressItem = await GenerateAddressAsync(seed, index, CancellationToken.None);
             await iriApi.RenewBalances(addressItem);
             return addressItem;
         }
@@ -108,7 +109,7 @@ namespace Borlay.Iota.Library
             var tasks = new List<Task<AddressItem>>();
             for (var i = index; i < count + index; i++)
             {
-                var task = NewAddressAsync(seed, i, cancellationToken);
+                var task = GenerateAddressAsync(seed, i, cancellationToken);
                 tasks.Add(task);
             }
             var addressItems = await Task.WhenAll(tasks);
@@ -122,24 +123,24 @@ namespace Borlay.Iota.Library
             return addressItems.ToArray();
         }
 
-        private async Task<AddressItem> NewAddressAsync(string seed, int index, CancellationToken cancellationToken)
+        
+
+        /// <summary>
+        /// Generates an address and renews transactions.
+        /// </summary>
+        /// <param name="seed">The seed from which an address should be generated</param>
+        /// <param name="index">The index of the address</param>
+        /// <param name="cancellationToken">The CancellationToken</param>
+        /// <returns></returns>
+        private async Task<AddressItem> GenerateAddressAsync(string seed, int index, CancellationToken cancellationToken)
         {
             await TaskIota.Yield().ConfigureAwait(false);
             // need yield because new address generation is very costly
 
-            int[] key = new Signing(new Curl()).Key(Converter.ToTrits(seed), index, 2);
-            string address = IotaApiUtils.NewAddress(key, false, new Curl(), cancellationToken);
-
-            var addressItem = new AddressItem()
-            {
-                Address = address,
-                PrivateKey = key,
-                Index = index,
-                Balance = 0
-            };
+            var addressItem = IotaUtils.GenerateAddress(seed, index, 2, false, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
 
             await RenewTransactions(addressItem);
-
             return addressItem;
         }
 

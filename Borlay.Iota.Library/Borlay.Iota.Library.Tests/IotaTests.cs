@@ -194,7 +194,7 @@ namespace Borlay.Iota.Library.Tests
         {
             var api = CreateIotaClient();
 
-            var emptyAddress = IotaApiUtils.GenerateRandomTrytes(81); // "".Pad(81);
+            var emptyAddress = IotaUtils.GenerateRandomTrytes(81); // "".Pad(81);
 
             var transfer = new TransferItem()
             {
@@ -276,7 +276,7 @@ namespace Borlay.Iota.Library.Tests
             var api = CreateIotaClient();
             //var address = await api.GetAddress(TestSeed2, 8);
 
-            var emptyAddress = IotaApiUtils.GenerateRandomTrytes(81); // "".Pad(81);
+            var emptyAddress = IotaUtils.GenerateRandomTrytes(81); // "".Pad(81);
 
             var transfer = new TransferItem()
             {

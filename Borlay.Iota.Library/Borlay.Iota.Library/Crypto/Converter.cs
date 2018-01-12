@@ -38,7 +38,7 @@ namespace Borlay.Iota.Library.Crypto
 
             var trits = state?.ToList() ?? new List<sbyte>();
 
-            if (trytes is int)
+            if (!(trytes is string))
             {
                 var intValue = (int)trytes;
                 return GetTritsFromInt(intValue);

@@ -6,12 +6,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Borlay.Iota.Library.Crypto;
+using System.Threading.Tasks;
 
 namespace Borlay.Iota.Library.Utils
 {
-    public static class IotaApiUtils
+    public static class IotaUtils
     {
-
         public static string GenerateRandomTrytes(int length = 81)
         {
             Random rand = new Random();
@@ -25,43 +26,64 @@ namespace Borlay.Iota.Library.Utils
         }
 
         /// <summary>
-        ///  Generates a new address
+        /// Offline generates an address
+        /// </summary>
+        /// <param name="seed">The seed from which an address should be generated</param>
+        /// <param name="index">The index of the address</param>
+        /// <param name="security">Security level (1, 2, 3)</param>
+        /// <param name="addChecksum">True to add checksum</param>
+        /// <returns></returns>
+        public static AddressItem GenerateAddress(string seed, int index, int security, bool addChecksum)
+        {
+            return GenerateAddress(seed, index, security, addChecksum, CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Offline generates an address
+        /// </summary>
+        /// <param name="seed">The seed from which an address should be generated</param>
+        /// <param name="index">The index of the address</param>
+        /// <param name="security">Security level (1, 2, 3)</param>
+        /// <param name="addChecksum">True to add checksum</param>
+        /// <param name="cancellationToken">The CancellationToken</param>
+        /// <returns></returns>
+        public static AddressItem GenerateAddress(string seed, int index, int security, bool addChecksum, CancellationToken cancellationToken)
+        {
+            var trits = Crypto.Converter.GetTrits(seed);
+            sbyte[] key = new Crypto.Signing().Key(trits, index, security);
+            string address = GenerateAddress(key, addChecksum, cancellationToken);
+
+            var addressItem = new AddressItem()
+            {
+                Address = address,
+                PrivateKey = key,
+                Index = index,
+                Balance = 0
+            };
+
+            return addressItem;
+        }
+
+        /// <summary>
+        ///  Generates an address from private key
         /// </summary>
         /// <param name="seed"></param>
         /// <param name="index"></param>
         /// <param name="checksum"></param>
         /// <param name="curl"></param>
         /// <returns></returns>
-        public static string NewAddress(int[] privateKey, bool checksum, ICurl curl, CancellationToken cancellationToken)
+        public static string GenerateAddress(sbyte[] privateKey, bool checksum, CancellationToken cancellationToken)
         {
-            Signing signing = new Signing(curl);
-            Stopwatch stopWatch = new Stopwatch();
-            stopWatch.Start();
-            // Get the elapsed time as a TimeSpan value.
-            TimeSpan ts = stopWatch.Elapsed;
+            Crypto.Signing signing = new Crypto.Signing();
+            var digests = signing.Digests(privateKey);
 
-            ts = stopWatch.Elapsed;
-            var elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
-                ts.Hours, ts.Minutes, ts.Seconds,
-                ts.Milliseconds / 10);
             cancellationToken.ThrowIfCancellationRequested();
 
-            int[] digests = signing.Digests(privateKey);
-
-            ts = stopWatch.Elapsed;
-            elapsedTime = String.Format("After Digest {0:00}:{1:00}:{2:00}.{3:00}",
-                ts.Hours, ts.Minutes, ts.Seconds,
-                ts.Milliseconds / 10);
+            var addressTrits = signing.Address(digests);
+            
             cancellationToken.ThrowIfCancellationRequested();
 
-            int[] addressTrits = signing.Address(digests);
-            ts = stopWatch.Elapsed;
-            elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
-                ts.Hours, ts.Minutes, ts.Seconds,
-                ts.Milliseconds / 10);
-            cancellationToken.ThrowIfCancellationRequested();
-
-            string address = Converter.ToTrytes(addressTrits);
+            string address = Crypto.Converter.GetTrytes(addressTrits);
 
             if (checksum)
                 address = Checksum.AddChecksum(address);
@@ -71,13 +93,15 @@ namespace Borlay.Iota.Library.Utils
 
         public static void SignSignatures(this IEnumerable<TransactionItem> transactionItems, IEnumerable<AddressItem> addressItems)
         {
-            var curl = new Curl();
-            foreach(var transactionItem in transactionItems)
-            {
-                var addressItem = addressItems.FirstOrDefault(a => a.Address == transactionItem.Address);
-                if(addressItem != null)
-                    transactionItem.SignSignature(addressItem.PrivateKey, curl);
-            }
+            throw new NotImplementedException("SignSignatures");
+            // todo need to implement
+            //var curl = new Curl();
+            //foreach(var transactionItem in transactionItems)
+            //{
+            //    var addressItem = addressItems.FirstOrDefault(a => a.Address == transactionItem.Address);
+            //    if(addressItem != null)
+            //        transactionItem.SignSignature(addressItem.PrivateKey, curl);
+            //}
         }
 
         public static void SignSignature(this TransactionItem transactionItem, int[] addressPrivateKey, ICurl curl)

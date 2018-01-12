@@ -15,8 +15,55 @@ namespace Borlay.Iota.Library.Tests
     [TestClass]
     public class KerlTests
     {
-        private string input = "GYOMKVTSNHVJNCNFBBAH9AAMXLPLLLROQY99QN9DLSJUHDPBLCFFAIQXZA9BKMBJCYSFHFPXAHDWZFEIZ";
-        private string expected = "OXJCNFHUNAHWDLKKPELTBFUCVW9KLXKOGWERKTJXQMXTKFKNWNNXYD9DMJJABSEIONOSJTTEVKVDQEWTW";
+
+
+        [TestMethod]
+        public void KerlAbsorbSqueeze()
+        {
+            var input = "GYOMKVTSNHVJNCNFBBAH9AAMXLPLLLROQY99QN9DLSJUHDPBLCFFAIQXZA9BKMBJCYSFHFPXAHDWZFEIZ";
+            var expected = "OXJCNFHUNAHWDLKKPELTBFUCVW9KLXKOGWERKTJXQMXTKFKNWNNXYD9DMJJABSEIONOSJTTEVKVDQEWTW";
+
+            var trits = Converter.GetTrits(input);
+            var kerl = new Kerl();
+            kerl.Initialize();
+            kerl.Absorb(trits, 0, trits.Length);
+            var hashTrits = new sbyte[Kerl.HASH_LENGTH];
+            kerl.Squeeze(hashTrits, 0, Kerl.HASH_LENGTH);
+            var hash = Converter.GetTrytes(hashTrits);
+            Assert.AreEqual(expected, hash);
+        }
+
+        [TestMethod]
+        public void KerlAbsorbMultiSqueeze()
+        {
+            var input = "9MIDYNHBWMBCXVDEFOFWINXTERALUKYYPPHKP9JJFGJEIUY9MUDVNFZHMMWZUYUSWAIOWEVTHNWMHANBH";
+            var expected = "G9JYBOMPUXHYHKSNRNMMSSZCSHOFYOYNZRSZMAAYWDYEIMVVOGKPJBVBM9TDPULSFUNMTVXRKFIDOHUXXVYDLFSZYZTWQYTE9SPYYWYTXJYQ9IFGYOLZXWZBKWZN9QOOTBQMWMUBLEWUEEASRHRTNIQWJQNDWRYLCA";
+
+            var trits = Converter.GetTrits(input);
+            var kerl = new Kerl();
+            kerl.Initialize();
+            kerl.Absorb(trits, 0, trits.Length);
+            var hashTrits = new sbyte[Kerl.HASH_LENGTH * 2];
+            kerl.Squeeze(hashTrits, 0, Kerl.HASH_LENGTH * 2);
+            var hash = Converter.GetTrytes(hashTrits);
+            Assert.AreEqual(expected, hash);
+        }
+
+        [TestMethod]
+        public void KerlMultiAbsorbMultiSqueeze()
+        {
+            var input = "G9JYBOMPUXHYHKSNRNMMSSZCSHOFYOYNZRSZMAAYWDYEIMVVOGKPJBVBM9TDPULSFUNMTVXRKFIDOHUXXVYDLFSZYZTWQYTE9SPYYWYTXJYQ9IFGYOLZXWZBKWZN9QOOTBQMWMUBLEWUEEASRHRTNIQWJQNDWRYLCA";
+            var expected = "LUCKQVACOGBFYSPPVSSOXJEKNSQQRQKPZC9NXFSMQNRQCGGUL9OHVVKBDSKEQEBKXRNUJSRXYVHJTXBPDWQGNSCDCBAIRHAQCOWZEBSNHIJIGPZQITIBJQ9LNTDIBTCQ9EUWKHFLGFUVGGUWJONK9GBCDUIMAYMMQX";
+
+            var trits = Converter.GetTrits(input);
+            var kerl = new Kerl();
+            kerl.Initialize();
+            kerl.Absorb(trits, 0, trits.Length);
+            var hashTrits = new sbyte[Kerl.HASH_LENGTH * 2];
+            kerl.Squeeze(hashTrits, 0, Kerl.HASH_LENGTH * 2);
+            var hash = Converter.GetTrytes(hashTrits);
+            Assert.AreEqual(expected, hash);
+        }
 
         [TestMethod]
         public void WordsToTritsAndBack()

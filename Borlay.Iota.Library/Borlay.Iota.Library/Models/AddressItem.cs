@@ -10,7 +10,7 @@ namespace Borlay.Iota.Library.Models
     /// </summary>
     public class AddressItem : AddressModelBase
     {
-        private int[] privateKey;
+        private sbyte[] privateKey;
         private long balance;
         private int keyIndex;
         //private bool hasTransactions;
@@ -37,7 +37,7 @@ namespace Borlay.Iota.Library.Models
         /// <summary>
         /// Gets or sets the private key
         /// </summary>
-        public virtual int[] PrivateKey
+        public virtual sbyte[] PrivateKey
         {
             get
             {
