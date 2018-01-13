@@ -31,6 +31,11 @@ namespace Borlay.Iota.Library
         public INonceSeeker NonceSeeker { get; set; }
 
         /// <summary>
+        /// Gets or sets address security. Default 2
+        /// </summary>
+        public int AddressSecurity { get; set; }
+
+        /// <summary>
         /// Gets or sets RebroadcastMaximumPowTime in milliseconds
         /// </summary>
         public int RebroadcastMaximumPowTime { get; set; }
@@ -73,6 +78,7 @@ namespace Borlay.Iota.Library
             this.iriApi = iriApi;
             this.MaxAddressIndex = 500;
             this.Depth = 9;
+            this.AddressSecurity = 2;
             this.RebroadcastMaximumPowTime = 20000;
             this.NonceSeeker = nonceSeeker;
         }
@@ -84,12 +90,12 @@ namespace Borlay.Iota.Library
         /// <param name="index">Address index</param>
         /// <param name="security">Address security (1, 2, 3). Use 2 if you don't know what to use</param>
         /// <returns></returns>
-        public async Task<AddressItem> GetAddress(string seed, int index, int security = 2)
+        public async Task<AddressItem> GetAddress(string seed, int index)
         {
             InputValidator.CheckIfValidSeed(seed);
             seed = InputValidator.PadSeedIfNecessary(seed);
 
-            var addressItem = await GenerateAddressAsync(seed, index, security, CancellationToken.None);
+            var addressItem = await GenerateAddressAsync(seed, index, CancellationToken.None);
             await iriApi.RenewBalances(addressItem);
             return addressItem;
         }
@@ -103,7 +109,7 @@ namespace Borlay.Iota.Library
         /// <param name="security">Address security (1, 2, 3). Use 2 if you don't know what to use</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns></returns>
-        public async Task<AddressItem[]> GetAddresses(string seed, int index, int count, int security, CancellationToken cancellationToken)
+        public async Task<AddressItem[]> GetAddresses(string seed, int index, int count, CancellationToken cancellationToken)
         {
             InputValidator.CheckIfValidSeed(seed);
             seed = InputValidator.PadSeedIfNecessary(seed);
@@ -111,7 +117,7 @@ namespace Borlay.Iota.Library
             var tasks = new List<Task<AddressItem>>();
             for (var i = index; i < count + index; i++)
             {
-                var task = GenerateAddressAsync(seed, i, security, cancellationToken);
+                var task = GenerateAddressAsync(seed, i, cancellationToken);
                 tasks.Add(task);
             }
             var addressItems = await Task.WhenAll(tasks);
@@ -135,12 +141,12 @@ namespace Borlay.Iota.Library
         /// <param name="security">Address security (1, 2, 3). Use 2 if you don't know what to use</param>
         /// <param name="cancellationToken">The CancellationToken</param>
         /// <returns></returns>
-        private async Task<AddressItem> GenerateAddressAsync(string seed, int index, int security, CancellationToken cancellationToken)
+        private async Task<AddressItem> GenerateAddressAsync(string seed, int index, CancellationToken cancellationToken)
         {
             await TaskIota.Yield().ConfigureAwait(false);
             // need yield because new address generation is very costly
 
-            var addressItem = IotaUtils.GenerateAddress(seed, index, security, false, cancellationToken);
+            var addressItem = IotaUtils.GenerateAddress(seed, index, AddressSecurity, false, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
 
             await RenewTransactions(addressItem);
@@ -229,7 +235,7 @@ namespace Borlay.Iota.Library
         {
             for (int i = startFromIndex; i < MaxAddressIndex; i += 10)
             {
-                var addressItems = await GetAddresses(seed, i, 10, 2, cancellationToken);
+                var addressItems = await GetAddresses(seed, i, 10, cancellationToken);
                 foreach (var addressItem in addressItems)
                 {
                     if (addressItem.Balance > 0 || addressItem.TransactionCount == 0)
@@ -248,7 +254,7 @@ namespace Borlay.Iota.Library
             List<AddressItem> addressList = new List<AddressItem>();
             for (int i = startFromIndex; i < MaxAddressIndex; i += 10)
             {
-                var addressItems = await GetAddresses(seed, i, 10, 2, cancellationToken);
+                var addressItems = await GetAddresses(seed, i, 10, cancellationToken);
                 if (addressItems.All(a => a.TransactionCount == 0))
                     break;
 
