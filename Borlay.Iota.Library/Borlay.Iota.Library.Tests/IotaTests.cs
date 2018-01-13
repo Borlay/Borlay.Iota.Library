@@ -22,10 +22,23 @@ namespace Borlay.Iota.Library.Tests
 
 
         [TestMethod]
+        public void CheckAddressBalance()
+        {
+            var api = CreateIotaClient();
+            var balances = api.IriApi
+                .GetBalances(new string[] 
+                { "ZDRSNW9BNHPRRKVIHPHSOHMSESQUJMK9SXWSWOVGNXKCFXAWXNWGZPFOHZEWHQVSBJJVJMAEZOGCOOGF9" }, 100).Result;
+
+            Assert.IsNotNull(balances);
+            Assert.AreEqual(1, balances.Length);
+            Assert.IsTrue(balances.First() > 0);
+        }
+
+
+        [TestMethod]
         public async Task GetIotaAddressTest()
         {
             var api = CreateIotaClient();
-
             var address = await api.GetAddress(TestSeed, 1);
             Assert.IsNotNull(address);
             Assert.AreEqual(1, address.Index);
@@ -487,7 +500,8 @@ namespace Borlay.Iota.Library.Tests
             // "http://node.deviceproof.org:14265"
             // "http://88.198.230.98:14265"
             // "http://iota.digits.blue:14265"
-            return new IotaApi("http://eugeneoldisoft.iotasupport.com:14265");
+            // http://eugeneoldisoft.iotasupport.com:14265
+            return new IotaApi("http://iota.bitfinex.com:80");
         }
 
         private IEnumerable<string> BroadcastUrls()

@@ -84,7 +84,7 @@ namespace Borlay.Iota.Library
         }
 
         /// <summary>
-        /// Generates and address and checks for hasTransaction and balance
+        /// Generates and address and gets transactions and balance
         /// </summary>
         /// <param name="seed">Seed</param>
         /// <param name="index">Address index</param>
@@ -100,7 +100,7 @@ namespace Borlay.Iota.Library
         }
 
         /// <summary>
-        /// Generates an addresses and checks for transactions and balances
+        /// Generates an addresses and gets transactions and balances
         /// </summary>
         /// <param name="seed">Seed</param>
         /// <param name="index">Address index to start</param>
@@ -132,7 +132,7 @@ namespace Borlay.Iota.Library
 
 
         /// <summary>
-        /// Generates an address and renews transactions.
+        /// Generates an address and gets transactions.
         /// </summary>
         /// <param name="seed">The seed from which an address should be generated</param>
         /// <param name="index">The index of the address</param>
