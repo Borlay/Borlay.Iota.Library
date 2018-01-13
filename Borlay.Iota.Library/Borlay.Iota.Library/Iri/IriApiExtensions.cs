@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Borlay.Iota.Library.Iri
 {
-    public static class IriExtensions
+    public static class IriApiExtensions
     {
         /// <summary>
         /// Requests the specified request asynchronously
