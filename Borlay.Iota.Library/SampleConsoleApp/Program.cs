@@ -40,7 +40,7 @@ namespace SampleConsoleApp
                 Tag = "TAGGOESHERE"
             };
 
-            var transactionItem = api.SendTransfer(transfer, CancellationToken.None).Result;
+            var transactionItem = api.AttachTransfer(transfer, CancellationToken.None).Result;
             Console.WriteLine($"You transaction took: {stopwatch.Elapsed.TotalSeconds} seconds.");
             Console.WriteLine($"Your transaction hash (might be):  {transactionItem[0].Hash}");
 

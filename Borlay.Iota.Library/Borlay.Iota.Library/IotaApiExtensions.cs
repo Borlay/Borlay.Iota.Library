@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Borlay.Iota.Library
 {
-    public static class IotaExtensions
+    public static class IotaApiExtensions
     {
         /// <summary>
         /// Sends transfer with money.
@@ -21,7 +21,7 @@ namespace Borlay.Iota.Library
         /// <param name="startFromIndex">Index to start search for address</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns></returns>
-        public static async Task<TransactionItem[]> SendTransfer(this IotaApi api, TransferItem transferItem, string seed, int startFromIndex, CancellationToken cancellationToken)
+        public static async Task<TransactionItem[]> AttachTransfer(this IotaApi api, TransferItem transferItem, string seed, int startFromIndex, CancellationToken cancellationToken)
         {
             var transactionItemsToSend = await api.CreateTransactions(transferItem, seed, startFromIndex, cancellationToken);
             var transactionItems = await api.AttachTransactions(transactionItemsToSend, cancellationToken);
@@ -35,7 +35,7 @@ namespace Borlay.Iota.Library
         /// <param name="transferItem">Transfer item</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns></returns>
-        public static Task<TransactionItem[]> SendTransfer(this IotaApi api, TransferItem transferItem, CancellationToken cancellationToken)
+        public static Task<TransactionItem[]> AttachTransfer(this IotaApi api, TransferItem transferItem, CancellationToken cancellationToken)
         {
             var transactionItems = transferItem.CreateTransactions();
             return api.AttachTransactions(transactionItems, cancellationToken);

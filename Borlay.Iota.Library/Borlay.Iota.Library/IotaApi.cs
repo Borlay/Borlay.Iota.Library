@@ -343,7 +343,7 @@ namespace Borlay.Iota.Library
         public async Task<TransactionItem[]> AttachTransactions(IEnumerable<TransactionItem> transactions, CancellationToken cancellationToken)
         {
             var transactionTrytes = transactions.GetTrytes();
-            var trytes = await AttackTrytes(transactionTrytes, cancellationToken);
+            var trytes = await AttachTrytes(transactionTrytes, cancellationToken);
             var transactionResult = trytes.Select(t => new TransactionItem(t)).ToArray();
             return transactionResult;
         }
@@ -424,7 +424,7 @@ namespace Borlay.Iota.Library
         /// <param name="transactionTrytes"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public virtual async Task<string[]> AttackTrytes(string[] transactionTrytes, CancellationToken cancellationToken)
+        public virtual async Task<string[]> AttachTrytes(string[] transactionTrytes, CancellationToken cancellationToken)
         {
             if (transactionTrytes == null)
                 throw new ArgumentNullException(nameof(transactionTrytes));
@@ -441,9 +441,6 @@ namespace Borlay.Iota.Library
             var branch = toApprove.BranchTransaction;
 
             var trytesToSend = await NonceSeeker.SearchNonce(transactionTrytes, trunk, branch, cancellationToken);
-
-            //var trytesToSend = await transactionTrytes
-            //    .DoPow(trunk, branch, IriApi.MinWeightMagnitude, NumberOfThreads, cancellationToken);
 
             await BroadcastAndStore(trytesToSend);
             return trytesToSend;

@@ -113,7 +113,7 @@ namespace Borlay.Iota.Library.Tests
                 Tag = "TAGTEST"
             };
 
-            var transactionItem = await api.SendTransfer(transfer, CancellationToken.None);
+            var transactionItem = await api.AttachTransfer(transfer, CancellationToken.None);
 
             //var transactions = transfer.CreateTransactions();
             //var trytes = transactions.GetTrytes();
