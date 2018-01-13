@@ -10,9 +10,10 @@
     <PackageTags>borlay iota wallet</PackageTags>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageProjectUrl>https://github.com/Borlay/Borlay.Iota.Library</PackageProjectUrl>
-    <Version>1.0.8</Version>
-    <PackageReleaseNotes>- Methods renamed - Send -&gt; Attach and Rebroadcast -&gt; FastReattach
-- Added version header</PackageReleaseNotes>
+    <Version>1.0.9</Version>
+    <PackageReleaseNotes>+ Add Kerl and Keccak
++ Address generation fixed
+- Attach transaction still not working</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
