@@ -1,4 +1,5 @@
-﻿using Borlay.Iota.Library.Utils;
+﻿using Borlay.Iota.Library.Crypto;
+using Borlay.Iota.Library.Utils;
 using System;
 using System.Collections.Generic;
 using System.Text;

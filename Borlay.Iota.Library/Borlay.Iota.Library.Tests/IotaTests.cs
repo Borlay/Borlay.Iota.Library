@@ -38,7 +38,7 @@ namespace Borlay.Iota.Library.Tests
         {
             var api = CreateIotaClient();
 
-            var address = await api.GetAddresses(TestSeed, 0, 100, 2, CancellationToken.None);
+            var address = await api.GetAddresses(TestSeed, 0, 100, CancellationToken.None);
             Assert.IsNotNull(address);
             Assert.AreEqual(100, address.Length);
         }
@@ -48,7 +48,7 @@ namespace Borlay.Iota.Library.Tests
         {
             var api = CreateIotaClient();
 
-            var address = await api.GetAddresses(TestSeed, 2, 5, 2, CancellationToken.None);
+            var address = await api.GetAddresses(TestSeed, 2, 5, CancellationToken.None);
             Assert.IsNotNull(address);
             Assert.AreEqual(5, address.Length);
             Assert.AreEqual(2, address.Min(a => a.Index));
@@ -63,7 +63,7 @@ namespace Borlay.Iota.Library.Tests
 
             var cts = new CancellationTokenSource();
             cts.CancelAfter(1000);
-            var address = await api.GetAddresses(TestSeed, 0, 1000, 2, cts.Token);
+            var address = await api.GetAddresses(TestSeed, 0, 1000, cts.Token);
         }
 
         [TestMethod]
@@ -391,7 +391,7 @@ namespace Borlay.Iota.Library.Tests
         public async Task DoPowAndSendTransactionWithValueTest()
         {
             var api = CreateIotaClient();
-            var addresses = await api.GetAddresses(TestSeed, 104, 3, 2, CancellationToken.None);
+            var addresses = await api.GetAddresses(TestSeed, 104, 3, CancellationToken.None);
             var transfer = new TransferItem()
             {
                 Address = addresses[1].Address,

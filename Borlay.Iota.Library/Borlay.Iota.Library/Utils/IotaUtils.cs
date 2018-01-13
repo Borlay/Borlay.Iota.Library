@@ -33,9 +33,9 @@ namespace Borlay.Iota.Library.Utils
         /// <param name="security">Security level (1, 2, 3)</param>
         /// <param name="addChecksum">True to add checksum</param>
         /// <returns></returns>
-        public static AddressItem GenerateAddress(string seed, int index, int security, bool addChecksum)
+        public static AddressItem GenerateAddress(string seed, int index, int security)
         {
-            return GenerateAddress(seed, index, security, addChecksum, CancellationToken.None);
+            return GenerateAddress(seed, index, security, CancellationToken.None);
         }
 
         /// <summary>
@@ -47,11 +47,11 @@ namespace Borlay.Iota.Library.Utils
         /// <param name="addChecksum">True to add checksum</param>
         /// <param name="cancellationToken">The CancellationToken</param>
         /// <returns></returns>
-        public static AddressItem GenerateAddress(string seed, int index, int security, bool addChecksum, CancellationToken cancellationToken)
+        public static AddressItem GenerateAddress(string seed, int index, int security, CancellationToken cancellationToken)
         {
             var trits = Crypto.Converter.GetTrits(seed);
             sbyte[] key = new Crypto.Signing().Key(trits, index, security);
-            string address = GenerateAddress(key, addChecksum, cancellationToken);
+            string address = GenerateAddress(key, false, cancellationToken);
 
             var addressItem = new AddressItem()
             {

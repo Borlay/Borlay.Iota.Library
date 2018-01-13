@@ -8,7 +8,7 @@ namespace Borlay.Iota.Library.Utils
     /// <summary>
     /// This class defines utility methods to add/remove the checksum to/from an address
     /// </summary>
-    public static class Checksum
+    public static class ChecksumOld
     {
         /// <summary>
         /// Adds the checksum to the specified address

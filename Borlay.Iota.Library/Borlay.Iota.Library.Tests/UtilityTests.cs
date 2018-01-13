@@ -47,33 +47,33 @@ namespace Borlay.Iota.Library.Tests
         [TestMethod]
         public void GenerateAddresses1()
         {
-            var res1 = IotaUtils.GenerateAddress(TEST_SEED1, 0, 1, false).Address;
+            var res1 = IotaUtils.GenerateAddress(TEST_SEED1, 0, 1).Address;
             Assert.AreEqual(res1, TEST_ADDRESS_WITHOUT_CHECKSUM_SECURITY_LEVEL_1);
 
-            var res2 = IotaUtils.GenerateAddress(TEST_SEED1, 0, 2, false).Address;
+            var res2 = IotaUtils.GenerateAddress(TEST_SEED1, 0, 2).Address;
             Assert.AreEqual(res2, TEST_ADDRESS_WITHOUT_CHECKSUM_SECURITY_LEVEL_2);
 
-            var res3 = IotaUtils.GenerateAddress(TEST_SEED1, 0, 3, false).Address;
+            var res3 = IotaUtils.GenerateAddress(TEST_SEED1, 0, 3).Address;
             Assert.AreEqual(res3, TEST_ADDRESS_WITHOUT_CHECKSUM_SECURITY_LEVEL_3);
         }
 
         [TestMethod]
         public void GenerateAddresses2()
         {
-            Assert.AreEqual(ADDR_I0_S1, IotaUtils.GenerateAddress(ADDR_SEED, 0, 1, false).Address);
-            Assert.AreEqual(ADDR_I0_S2, IotaUtils.GenerateAddress(ADDR_SEED, 0, 2, false).Address);
-            Assert.AreEqual(ADDR_I0_S3, IotaUtils.GenerateAddress(ADDR_SEED, 0, 3, false).Address);
+            Assert.AreEqual(ADDR_I0_S1, IotaUtils.GenerateAddress(ADDR_SEED, 0, 1).Address);
+            Assert.AreEqual(ADDR_I0_S2, IotaUtils.GenerateAddress(ADDR_SEED, 0, 2).Address);
+            Assert.AreEqual(ADDR_I0_S3, IotaUtils.GenerateAddress(ADDR_SEED, 0, 3).Address);
 
-            Assert.AreEqual(ADDR_LS_I0_S1, IotaUtils.GenerateAddress(ADDR_SEED + ADDR_SEED, 0, 1, false).Address);
-            Assert.AreEqual(ADDR_LS_I0_S2, IotaUtils.GenerateAddress(ADDR_SEED + ADDR_SEED, 0, 2, false).Address);
-            Assert.AreEqual(ADDR_LS_I0_S3, IotaUtils.GenerateAddress(ADDR_SEED + ADDR_SEED, 0, 3, false).Address);
+            Assert.AreEqual(ADDR_LS_I0_S1, IotaUtils.GenerateAddress(ADDR_SEED + ADDR_SEED, 0, 1).Address);
+            Assert.AreEqual(ADDR_LS_I0_S2, IotaUtils.GenerateAddress(ADDR_SEED + ADDR_SEED, 0, 2).Address);
+            Assert.AreEqual(ADDR_LS_I0_S3, IotaUtils.GenerateAddress(ADDR_SEED + ADDR_SEED, 0, 3).Address);
         }
 
         [TestMethod]
         public void GerateAddressesWithChecksum()
         {
-            Assert.AreEqual(FIRST_ADDR, IotaUtils.GenerateAddress(TEST_SEED, 0, 2, true).Address);
-            Assert.AreEqual(SIXTH_ADDR, IotaUtils.GenerateAddress(TEST_SEED, 5, 2, true).Address);
+            Assert.AreEqual(FIRST_ADDR, IotaUtils.GenerateAddress(TEST_SEED, 0, 2).AddressWithCheckSum);
+            Assert.AreEqual(SIXTH_ADDR, IotaUtils.GenerateAddress(TEST_SEED, 5, 2).AddressWithCheckSum);
         }
 
         [TestMethod]
