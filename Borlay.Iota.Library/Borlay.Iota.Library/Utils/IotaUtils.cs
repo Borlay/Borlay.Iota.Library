@@ -31,9 +31,8 @@ namespace Borlay.Iota.Library.Utils
         /// <param name="seed">The seed from which an address should be generated</param>
         /// <param name="index">The index of the address</param>
         /// <param name="security">Security level (1, 2, 3)</param>
-        /// <param name="addChecksum">True to add checksum</param>
         /// <returns></returns>
-        public static AddressItem GenerateAddress(string seed, int index, int security)
+        public static AddressItem GenerateAddress(string seed, int index, int security = 2)
         {
             return GenerateAddress(seed, index, security, CancellationToken.None);
         }
@@ -43,8 +42,7 @@ namespace Borlay.Iota.Library.Utils
         /// </summary>
         /// <param name="seed">The seed from which an address should be generated</param>
         /// <param name="index">The index of the address</param>
-        /// <param name="security">Security level (1, 2, 3)</param>
-        /// <param name="addChecksum">True to add checksum</param>
+        /// <param name="security">Security level (1, 2, 3). Use 2 if you don't know what to use.</param>
         /// <param name="cancellationToken">The CancellationToken</param>
         /// <returns></returns>
         public static AddressItem GenerateAddress(string seed, int index, int security, CancellationToken cancellationToken)

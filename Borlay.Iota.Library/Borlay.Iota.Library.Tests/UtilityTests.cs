@@ -82,7 +82,6 @@ namespace Borlay.Iota.Library.Tests
             var trytes = IotaUtils.GenerateRandomTrytes();
             Assert.AreEqual(81, trytes.Length);
             Assert.IsTrue(ContainsChars(trytes, Constants.TryteAlphabet));
-            //Assert.IsTrue(ContainsChars(Constants.TryteAlphabet, trytes)); // sometimes can throw 
         }
 
         [TestMethod]
