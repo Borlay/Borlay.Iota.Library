@@ -91,18 +91,18 @@ namespace Borlay.Iota.Library.Utils
 
         public static void SignSignatures(this IEnumerable<TransactionItem> transactionItems, IEnumerable<AddressItem> addressItems)
         {
-            throw new NotImplementedException("SignSignatures");
+            //throw new NotImplementedException("SignSignatures");
             // todo need to implement
-            //var curl = new Curl();
-            //foreach(var transactionItem in transactionItems)
-            //{
-            //    var addressItem = addressItems.FirstOrDefault(a => a.Address == transactionItem.Address);
-            //    if(addressItem != null)
-            //        transactionItem.SignSignature(addressItem.PrivateKey, curl);
-            //}
+            var curl = new Borlay.Iota.Library.Crypto.Curl();
+            foreach (var transactionItem in transactionItems)
+            {
+                var addressItem = addressItems.FirstOrDefault(a => a.Address == transactionItem.Address);
+                if (addressItem != null)
+                    transactionItem.SignSignature(addressItem.PrivateKey, curl);
+            }
         }
 
-        public static void SignSignature(this TransactionItem transactionItem, int[] addressPrivateKey, ICurl curl)
+        public static void SignSignature(this TransactionItem transactionItem, sbyte[] addressPrivateKey, ICurl curl)
         {
             var value = Int64.Parse(transactionItem.Value);
             if (value > 0)
@@ -114,14 +114,14 @@ namespace Borlay.Iota.Library.Utils
             var normalizedBundleHash = TransactionExtensions.NormalizedBundle(transactionItem.Bundle);
 
             //  First 6561 trits for the firstFragment
-            int[] firstFragment = ArrayUtils.SubArray2(addressPrivateKey, 6561 * index, 6561);
+            sbyte[] firstFragment = ArrayUtils.SubArray2(addressPrivateKey, 6561 * index, 6561);
             //  First bundle fragment uses 27 trytes
             int[] firstBundleFragment = ArrayUtils.SubArray2(normalizedBundleHash, 27 * index, 27);
             //  Calculate the new signatureFragment with the first bundle fragment
-            int[] firstSignedFragment = new Signing(curl).SignatureFragment(firstBundleFragment, firstFragment);
+            sbyte[] firstSignedFragment = new Signing().SignatureFragment(firstBundleFragment, firstFragment);
 
             //  Convert signature to trytes and assign the new signatureFragment
-            transactionItem.SignatureFragment = Converter.ToTrytes(firstSignedFragment);
+            transactionItem.SignatureFragment = Borlay.Iota.Library.Crypto.Converter.GetTrytes(firstSignedFragment);
         }
 
         /// <summary>

@@ -10,19 +10,19 @@ namespace Borlay.Iota.Library.Utils
     /// </summary>
     public static class ChecksumOld
     {
-        /// <summary>
-        /// Adds the checksum to the specified address
-        /// </summary>
-        /// <param name="address">An address without checksum</param>
-        /// <returns>The address with the appended checksum </returns>
-        /// <exception cref="InvalidAddressException">is thrown when an invalid address is provided</exception>
-        public static string AddChecksum(string address)
-        {
-            InputValidator.CheckAddress(address);
-            string addressWithChecksum = address;
-            addressWithChecksum += CalculateChecksum(address);
-            return addressWithChecksum;
-        }
+        ///// <summary>
+        ///// Adds the checksum to the specified address
+        ///// </summary>
+        ///// <param name="address">An address without checksum</param>
+        ///// <returns>The address with the appended checksum </returns>
+        ///// <exception cref="InvalidAddressException">is thrown when an invalid address is provided</exception>
+        //public static string AddChecksum(string address)
+        //{
+        //    InputValidator.CheckAddress(address);
+        //    string addressWithChecksum = address;
+        //    addressWithChecksum += CalculateChecksum(address);
+        //    return addressWithChecksum;
+        //}
 
 
         /// <summary>
@@ -46,19 +46,19 @@ namespace Borlay.Iota.Library.Utils
             return addressWithChecksum.Substring(0, Constants.AddressLengthWithoutChecksum);
         }
 
-        /// <summary>
-        /// Determines whether the specified address with checksum has a valid checksum.
-        /// </summary>
-        /// <param name="addressWithChecksum">The address with checksum.</param>
-        /// <returns>
-        ///   <c>true</c> if the specified address with checksum has a valid checksum [the specified address with checksum]; otherwise, <c>false</c>.
-        /// </returns>
-        public static bool IsValidChecksum(this string addressWithChecksum)
-        {
-            string addressWithoutChecksum = RemoveChecksum(addressWithChecksum);
-            string adressWithRecalculateChecksum = addressWithoutChecksum + CalculateChecksum(addressWithoutChecksum);
-            return adressWithRecalculateChecksum.Equals(addressWithChecksum);
-        }
+        ///// <summary>
+        ///// Determines whether the specified address with checksum has a valid checksum.
+        ///// </summary>
+        ///// <param name="addressWithChecksum">The address with checksum.</param>
+        ///// <returns>
+        /////   <c>true</c> if the specified address with checksum has a valid checksum [the specified address with checksum]; otherwise, <c>false</c>.
+        ///// </returns>
+        //public static bool IsValidChecksum(this string addressWithChecksum)
+        //{
+        //    string addressWithoutChecksum = RemoveChecksum(addressWithChecksum);
+        //    string adressWithRecalculateChecksum = addressWithoutChecksum + CalculateChecksum(addressWithoutChecksum);
+        //    return adressWithRecalculateChecksum.Equals(addressWithChecksum);
+        //}
 
 
         private static bool IsAddressWithChecksum(string addressWithChecksum)
@@ -66,14 +66,14 @@ namespace Borlay.Iota.Library.Utils
             return InputValidator.IsAddress(addressWithChecksum) && addressWithChecksum.Length == Constants.AddressLengthWithChecksum;
         }
 
-        private static string CalculateChecksum(string address)
-        {
-            // TODO inject curl
-            Curl curl = new Curl();
-            curl.Reset();
-            curl.State = Converter.CopyTrits(address, curl.State);
-            curl.Transform();
-            return Converter.ToTrytes(curl.State).Substring(0, 9);
-        }
+        //private static string CalculateChecksum(string address)
+        //{
+        //    // TODO inject curl
+        //    Curl curl = new Curl();
+        //    curl.Reset();
+        //    curl.State = Converter.CopyTrits(address, curl.State);
+        //    curl.Transform();
+        //    return Converter.ToTrytes(curl.State).Substring(0, 9);
+        //}
     }
 }

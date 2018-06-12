@@ -22,14 +22,14 @@ namespace Borlay.Iota.Library.Crypto
         /// <param name="offset">The offset to start from.</param>
         /// <param name="length">The length.</param>
         /// <returns>the ICurl instance (used for method chaining)</returns>
-        ICurl Absorb(int[] trits, int offset, int length);
+        ICurl Absorb(sbyte[] trits, int offset, int length);
 
         /// <summary>
         /// Absorbs the specified trits.
         /// </summary>
         /// <param name="trits">The trits.</param>
         /// <returns>the ICurl instance (used for method chaining)</returns>
-        ICurl Absorb(int[] trits);
+        ICurl Absorb(sbyte[] trits);
 
         /// <summary>
         /// Squeezes the specified trits.
@@ -38,14 +38,14 @@ namespace Borlay.Iota.Library.Crypto
         /// <param name="offset">The offset to start from.</param>
         /// <param name="length">The length.</param>
         /// <returns>the squeezed trits</returns>
-        int[] Squeeze(int[] trits, int offset, int length);
+        sbyte[] Squeeze(sbyte[] trits, int offset, int length);
 
         /// <summary>
         /// Squeezes the specified trits.
         /// </summary>
         /// <param name="trits">The trits.</param>
         /// <returns>the squeezed trits</returns>
-        int[] Squeeze(int[] trits);
+        sbyte[] Squeeze(sbyte[] trits);
 
         /// <summary>
         /// Transforms this instance.
@@ -65,6 +65,6 @@ namespace Borlay.Iota.Library.Crypto
         /// <value>
         /// The state.
         /// </value>
-        int[] State { get; }
+        sbyte[] State { get; }
     }
 }

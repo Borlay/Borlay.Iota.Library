@@ -1,4 +1,5 @@
-﻿using Borlay.Iota.Library.Utils;
+﻿using Borlay.Iota.Library.Crypto;
+//using Borlay.Iota.Library.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,50 +9,66 @@ namespace Borlay.Iota.Library.Models
 {
     public static class TransactionExtensions
     {
-        public static string FinalizeBundleHash(this IEnumerable<TransactionItem> transactionItems, ICurl customCurl)
+        public static void FinalizeBundleHash(this IEnumerable<TransactionItem> transactionItems)
         {
-            customCurl.Reset();
-            var transactionCount = transactionItems.Count();
-
-            for (int i = 0; i < transactionCount; i++)
+            var validBundle = false;
+            while (!validBundle)
             {
-                var transaction = transactionItems.ElementAt(i);
+                var kerl = new Kerl();
+                kerl.Reset();
+                var transactionCount = transactionItems.Count();
 
-                int[] valueTrits = Converter.ToTrits(transaction.Value, 81);
+                for (int i = 0; i < transactionCount; i++)
+                {
+                    var transaction = transactionItems.ElementAt(i);
 
-                int[] timestampTrits = Converter.ToTrits(transaction.Timestamp, 27);
+                    var valueTrits = Converter.GetTrits(transaction.Value).ToLength(81);
 
-                int[] currentIndexTrits = Converter.ToTrits(transaction.CurrentIndex = ("" + i), 27);
+                    var timestampTrits = Converter.GetTrits(transaction.Timestamp).ToLength(27);
 
-                int[] lastIndexTrits = Converter.ToTrits(
-                    transaction.LastIndex = ("" + (transactionCount - 1)), 27);
+                    var currentIndexTrits = Converter.GetTrits(transaction.CurrentIndex = ("" + i)).ToLength(27);
 
-                string stringToConvert = transaction.Address
-                                         + Converter.ToTrytes(valueTrits)
-                                         + transaction.Tag +
-                                         Converter.ToTrytes(timestampTrits)
-                                         + Converter.ToTrytes(currentIndexTrits) +
-                                         Converter.ToTrytes(lastIndexTrits);
+                    var lastIndexTrits = Converter.GetTrits(
+                        transaction.LastIndex = ("" + (transactionCount - 1))).ToLength(27);
 
-                int[] t = Converter.ToTrits(stringToConvert);
-                customCurl.Absorb(t, 0, t.Length);
+                    string stringToConvert = transaction.Address
+                                             + Converter.GetTrytes(valueTrits)
+                                             + transaction.Tag +
+                                             Converter.GetTrytes(timestampTrits)
+                                             + Converter.GetTrytes(currentIndexTrits) +
+                                             Converter.GetTrytes(lastIndexTrits);
+
+                    var t = Converter.GetTrits(stringToConvert);
+                    kerl.Absorb(t, 0, t.Length);
+                }
+
+                sbyte[] hash = new sbyte[Curl.HASH_LENGTH];
+                kerl.Squeeze(hash, 0, hash.Length);
+                string hashInTrytes = Converter.GetTrytes(hash);
+
+                foreach (var transaction in transactionItems)
+                    transaction.Bundle = hashInTrytes;
+
+                var normalizedHash = NormalizedBundle(hashInTrytes);
+                if (normalizedHash.Contains(13))
+                {
+                    // Insecure bundle. Increment Tag and recompute bundle hash.
+                    var firstTransaction = transactionItems.ElementAt(0);
+                    var increasedTag = Adder.Add(Converter.GetTrits(firstTransaction.Tag), new sbyte[1]);
+                    firstTransaction.Tag = Converter.GetTrytes(increasedTag);
+                }
+                else
+                {
+                    validBundle = true;
+                }
             }
-
-            int[] hash = new int[243];
-            customCurl.Squeeze(hash, 0, hash.Length);
-            string hashInTrytes = Converter.ToTrytes(hash);
-
-            foreach (var transaction in transactionItems)
-                transaction.Bundle = hashInTrytes;
-
-            return hashInTrytes;
         }
 
-        public static int[] FinalizeAndNormalizeBundleHash(this IEnumerable<TransactionItem> transactionItems, ICurl customCurl)
-        {
-            var bundleHash = transactionItems.FinalizeBundleHash(customCurl);
-            return NormalizedBundle(bundleHash);
-        }
+        //public static int[] FinalizeAndNormalizeBundleHash(this IEnumerable<TransactionItem> transactionItems)
+        //{
+        //    var bundleHash = transactionItems.FinalizeBundleHash();
+        //    return NormalizedBundle(bundleHash);
+        //}
 
         /// <summary>
         /// Normalizeds the bundle.
@@ -69,7 +86,7 @@ namespace Borlay.Iota.Library.Models
                 {
                     sum +=
                     (normalizedBundle[i * 27 + j] =
-                        Converter.ToValue(Converter.ToTritsString("" + bundleHash[i * 27 + j])));
+                        (int)Converter.GetInt(Converter.GetTrits("" + bundleHash[i * 27 + j])));
                 }
 
                 if (sum >= 0)

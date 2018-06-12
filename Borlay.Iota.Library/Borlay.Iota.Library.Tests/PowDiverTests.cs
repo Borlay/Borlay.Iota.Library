@@ -124,30 +124,30 @@ namespace Borlay.Iota.Library.Tests
 
         private static int TRYTE_LENGTH = 2673;
 
-        [TestMethod]
-        public void testRandomTryteHash()
-        {
-            PowDiver powDiver = new PowDiver();
-            Curl curl = new Curl();
-            String hash;
-            int[] hashTrits = new int[PowDiver.CURL_HASH_LENGTH],
-                    myTrits;
-            int i = 0,
-            testCount = 20,
-            minWeightMagnitude = 9,
-            numCores = -1; // use n-1 cores
+        //[TestMethod]
+        //public void testRandomTryteHash()
+        //{
+        //    PowDiver powDiver = new PowDiver();
+        //    Curl curl = new Curl();
+        //    String hash;
+        //    int[] hashTrits = new int[PowDiver.CURL_HASH_LENGTH],
+        //            myTrits;
+        //    int i = 0,
+        //    testCount = 20,
+        //    minWeightMagnitude = 9,
+        //    numCores = -1; // use n-1 cores
 
-            String trytes = getRandomTrytes();
-            myTrits = Converter.ToTrits(trytes);
-            powDiver.search(myTrits, minWeightMagnitude, numCores);
-            curl.Absorb(myTrits, 0, myTrits.Length);
-            curl.Squeeze(hashTrits, 0, PowDiver.CURL_HASH_LENGTH);
-            curl.Reset();
-            hash = Converter.ToTrytes(hashTrits);
-            bool success = isAllNines(hash.Substring(PowDiver.CURL_HASH_LENGTH / 3 - minWeightMagnitude / 3));
-            Assert.IsTrue(success, "The hash should have n nines");
+        //    String trytes = getRandomTrytes();
+        //    myTrits = Converter.ToTrits(trytes);
+        //    powDiver.search(myTrits, minWeightMagnitude, numCores);
+        //    curl.Absorb(myTrits, 0, myTrits.Length);
+        //    curl.Squeeze(hashTrits, 0, PowDiver.CURL_HASH_LENGTH);
+        //    curl.Reset();
+        //    hash = Converter.ToTrytes(hashTrits);
+        //    bool success = isAllNines(hash.Substring(PowDiver.CURL_HASH_LENGTH / 3 - minWeightMagnitude / 3));
+        //    Assert.IsTrue(success, "The hash should have n nines");
 
-        }
+        //}
 
         // Remove below comment to test pearlDiver iteratively
         //[TestMethod]

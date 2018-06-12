@@ -11,13 +11,13 @@ namespace Borlay.Iota.Library.Crypto
         public const int HASH_LENGTH = 243;
         public const int STATE_LENGTH = 3 * HASH_LENGTH;
 
-        private static int[] truthTable = new int[] { 1, 0, -1, 2, 1, -1, 0, 2, -1, 1, 0 };
+        private static sbyte[] truthTable = new sbyte[] { 1, 0, -1, 2, 1, -1, 0, 2, -1, 1, 0 };
 
-        private int[] state = new int[STATE_LENGTH];
+        private sbyte[] state = new sbyte[STATE_LENGTH];
         private int rounds;
         
 
-        public int[] State => state;
+        public sbyte[] State => state;
 
         public Curl()
             : this(NUMBER_OF_ROUNDS)
@@ -35,7 +35,7 @@ namespace Borlay.Iota.Library.Crypto
             return Initialize(null);
         }
 
-        public ICurl Initialize(int[] state)
+        public ICurl Initialize(sbyte[] state)
         {
             if (state != null)
                 this.state = state;
@@ -54,7 +54,7 @@ namespace Borlay.Iota.Library.Crypto
             return Initialize();
         }
 
-        public ICurl Absorb(int[] trits, int offset, int length)
+        public ICurl Absorb(sbyte[] trits, int offset, int length)
         {
             do
             {
@@ -72,7 +72,7 @@ namespace Borlay.Iota.Library.Crypto
             return this;
         }
 
-        public int[] Squeeze(int[] trits, int offset, int length)
+        public sbyte[] Squeeze(sbyte[] trits, int offset, int length)
         {
 
             do
@@ -115,12 +115,12 @@ namespace Borlay.Iota.Library.Crypto
             return new Curl();
         }
 
-        public ICurl Absorb(int[] trits)
+        public ICurl Absorb(sbyte[] trits)
         {
             return Absorb(trits, 0, trits.Length);
         }
 
-        public int[] Squeeze(int[] trits)
+        public sbyte[] Squeeze(sbyte[] trits)
         {
             return Squeeze(trits, 0, trits.Length);
         }

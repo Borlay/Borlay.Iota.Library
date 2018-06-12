@@ -28,6 +28,19 @@ namespace Borlay.Iota.Library.Crypto
             return res;
         }
 
+        public static T[] ToLength<T>(this T[] source, int length)
+        {
+            if(source.Length < length)
+            {
+                List<T> destination = new List<T>(source);
+                while (destination.Count < length)
+                    destination.Add(default(T));
+                return destination.ToArray();
+            }
+
+            return source;
+        }
+
         public static void TaReverse<T>(this T[] array)
         {
 

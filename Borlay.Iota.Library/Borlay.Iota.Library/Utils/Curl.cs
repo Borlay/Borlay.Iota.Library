@@ -1,9 +1,11 @@
-﻿using System;
+﻿using Borlay.Iota.Library.Crypto;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Borlay.Iota.Library.Utils
 {
+    /*
     /// <summary>
     /// (c) 2016 Come-from-Beyond
     /// 
@@ -147,5 +149,5 @@ namespace Borlay.Iota.Library.Utils
             get { return state; }
             set { state = value; }
         }
-    }
+    }*/
 }

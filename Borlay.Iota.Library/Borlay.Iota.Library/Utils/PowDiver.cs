@@ -67,18 +67,18 @@ namespace Borlay.Iota.Library.Utils
 
         public async Task<string> DoPow(string trytes, int minWeightMagnitude, int numberOfThreads, CancellationToken CancellationToken)
         {
-            var intxTrits = Library.Utils.Converter.ToTrits(trytes);
+            var intxTrits = Borlay.Iota.Library.Crypto.Converter.GetTrits(trytes);
             await search(intxTrits, minWeightMagnitude, numberOfThreads, CancellationToken);
-            var resultTrytes = Utils.Converter.ToTrytes(intxTrits);
+            var resultTrytes = Borlay.Iota.Library.Crypto.Converter.GetTrytes(intxTrits);
             return resultTrytes;
         }
-        public Task search(int[] transactionTrits, int minWeightMagnitude, int numberOfThreads)
+        public Task search(sbyte[] transactionTrits, int minWeightMagnitude, int numberOfThreads)
         {
             return search(transactionTrits, minWeightMagnitude, numberOfThreads, CancellationToken.None);
         }
 
 
-        public async Task search(int[] transactionTrits, int minWeightMagnitude, int numberOfThreads, CancellationToken CancellationToken)
+        public async Task search(sbyte[] transactionTrits, int minWeightMagnitude, int numberOfThreads, CancellationToken CancellationToken)
         {
 
             if (transactionTrits.Length != TRANSACTION_LENGTH)
@@ -216,7 +216,7 @@ namespace Borlay.Iota.Library.Utils
                                 }
                                 for (int i = 0; i < CURL_HASH_LENGTH; i++)
                                 {
-                                    transactionTrits[TRANSACTION_LENGTH - CURL_HASH_LENGTH + i] = (midCurlStateCopyLow[i] & outMask) == 0 ? 1 : (midCurlStateCopyHigh[i] & outMask) == 0 ? -1 : 0;
+                                    transactionTrits[TRANSACTION_LENGTH - CURL_HASH_LENGTH + i] = (sbyte)((midCurlStateCopyLow[i] & outMask) == 0 ? 1 : (midCurlStateCopyHigh[i] & outMask) == 0 ? -1 : 0);
                                 }
                             }
                         }

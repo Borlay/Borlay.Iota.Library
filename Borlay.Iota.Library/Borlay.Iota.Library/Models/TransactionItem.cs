@@ -1,4 +1,5 @@
-﻿using Borlay.Iota.Library.Utils;
+﻿using Borlay.Iota.Library.Crypto;
+using Borlay.Iota.Library.Utils;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -41,14 +42,14 @@ namespace Borlay.Iota.Library.Models
         /// Initializes a new instance of the <see cref="TransactionItem"/> class.
         /// </summary>
         /// <param name="trytes">The trytes representing the transaction</param>
-        public TransactionItem(string trytes) : this(trytes, new Curl())
+        public TransactionItem(string trytes) : this(trytes, new Crypto.Curl())
         {
         }
 
 
         public void UpdateFromTrytes(string trytes)
         {
-            UpdateFromTrytes(trytes, new Curl());
+            UpdateFromTrytes(trytes, new Crypto.Curl());
         }
 
         public void UpdateFromTrytes(string trytes, ICurl curl)
@@ -67,22 +68,22 @@ namespace Borlay.Iota.Library.Models
 
             }
 
-            int[] transactionTrits = Converter.ToTrits(trytes);
-            int[] hash = new int[243];
+            var transactionTrits = Crypto.Converter.GetTrits(trytes);
+            sbyte[] hash = new sbyte[243];
 
             // generate the correct transaction hash
             curl.Reset()
                 .Absorb(transactionTrits, 0, transactionTrits.Length)
                 .Squeeze(hash, 0, hash.Length);
 
-            Hash = Converter.ToTrytes(hash);
+            Hash = Crypto.Converter.GetTrytes(hash);
             SignatureFragment = trytes.Substring(0, 2187);
             Address = trytes.Substring(2187, 2268 - 2187);
-            Value = "" + Converter.ToLongValue(ArrayUtils.SubArray(transactionTrits, 6804, 6837));
+            Value = "" + Crypto.Converter.GetInt(ArrayUtils.SubArray(transactionTrits, 6804, 6837));
             Tag = trytes.Substring(2295, 2322 - 2295);
-            Timestamp = "" + Converter.ToLongValue(ArrayUtils.SubArray(transactionTrits, 6966, 6993));
-            CurrentIndex = "" + Converter.ToLongValue(ArrayUtils.SubArray(transactionTrits, 6993, 7020));
-            LastIndex = "" + Converter.ToLongValue(ArrayUtils.SubArray(transactionTrits, 7020, 7047));
+            Timestamp = "" + Crypto.Converter.GetInt(ArrayUtils.SubArray(transactionTrits, 6966, 6993));
+            CurrentIndex = "" + Crypto.Converter.GetInt(ArrayUtils.SubArray(transactionTrits, 6993, 7020));
+            LastIndex = "" + Crypto.Converter.GetInt(ArrayUtils.SubArray(transactionTrits, 7020, 7047));
             Bundle = trytes.Substring(2349, 2430 - 2349);
             TrunkTransaction = trytes.Substring(2430, 2511 - 2430);
             BranchTransaction = trytes.Substring(2511, 2592 - 2511);
@@ -480,18 +481,18 @@ namespace Borlay.Iota.Library.Models
         /// <returns></returns>
         public string ToTransactionTrytes()
         {
-            int[] valueTrits = Converter.ToTrits(Value, 81);
-            int[] timestampTrits = Converter.ToTrits(Timestamp, 27);
-            int[] currentIndexTrits = Converter.ToTrits(CurrentIndex, 27);
-            int[] lastIndexTrits = Converter.ToTrits(LastIndex, 27);
+            var valueTrits = Crypto.Converter.GetTrits(Value).ToLength(81);
+            var timestampTrits = Crypto.Converter.GetTrits(Timestamp).ToLength(27);
+            var currentIndexTrits = Crypto.Converter.GetTrits(CurrentIndex).ToLength(27);
+            var lastIndexTrits = Crypto.Converter.GetTrits(LastIndex).ToLength(27);
 
             return SignatureFragment
                    + Address
-                   + Converter.ToTrytes(valueTrits)
+                   + Crypto.Converter.GetTrytes(valueTrits)
                    + Tag
-                   + Converter.ToTrytes(timestampTrits)
-                   + Converter.ToTrytes(currentIndexTrits)
-                   + Converter.ToTrytes(lastIndexTrits)
+                   + Crypto.Converter.GetTrytes(timestampTrits)
+                   + Crypto.Converter.GetTrytes(currentIndexTrits)
+                   + Crypto.Converter.GetTrytes(lastIndexTrits)
                    + Bundle
                    + TrunkTransaction
                    + BranchTransaction

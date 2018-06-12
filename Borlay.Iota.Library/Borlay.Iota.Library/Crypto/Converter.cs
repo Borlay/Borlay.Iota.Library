@@ -131,9 +131,9 @@ namespace Borlay.Iota.Library.Crypto
         /// </summary>
         /// <param name="trits">The trits</param>
         /// <returns></returns>
-        public static int GetInt(sbyte[] trits)
+        public static long GetInt(sbyte[] trits)
         {
-            var returnValue = 0;
+            long returnValue = 0;
 
             for (var i = trits.Length; i-- > 0;)
             {

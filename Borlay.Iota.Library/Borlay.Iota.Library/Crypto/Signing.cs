@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using Borlay.Iota.Library.Models;
 
 namespace Borlay.Iota.Library.Crypto
 {
@@ -107,6 +108,91 @@ namespace Borlay.Iota.Library.Crypto
             kerl.Squeeze(addressTrits, 0, Curl.HASH_LENGTH);
 
             return addressTrits;
+        }
+
+        public sbyte[] Digest(int[] normalizedBundleFragment, sbyte[] signatureFragment)
+        {
+            sbyte[] buffer = null;
+            var kerl = new Kerl();
+            kerl.Initialize();
+            for(var i = 0; i < 27; i++)
+            {
+                buffer = signatureFragment.Slice(i * 243, (i + 1) * 243);
+                for(var j = normalizedBundleFragment[i] + 13; j-- > 0;)
+                {
+                    var jKerl = new Kerl();
+                    jKerl.Initialize();
+                    jKerl.Absorb(buffer, 0, buffer.Length);
+                    jKerl.Squeeze(buffer, 0, Curl.HASH_LENGTH);
+                }
+                kerl.Absorb(buffer, 0, buffer.Length);
+            }
+
+            kerl.Squeeze(buffer, 0, Curl.HASH_LENGTH);
+            return buffer;
+        }
+
+        public sbyte[] SignatureFragment(int[] normalizedBundleFragment, sbyte[] keyFragment)
+        {
+            var signatureFragment = keyFragment.ToArray();
+            var hash = new sbyte[0];
+            var kerl = new Kerl();
+
+            for (var i = 0; i < 27; i++)
+            {
+                hash = signatureFragment.Slice(i * 243, (i + 1) * 243);
+
+                for (var j = 0; j < 13 - normalizedBundleFragment[i]; j++)
+                {
+                    kerl.Initialize();
+                    kerl.Reset();
+                    kerl.Absorb(hash, 0, hash.Length);
+                    kerl.Squeeze(hash, 0, Curl.HASH_LENGTH);
+                }
+
+                for (var j = 0; j < 243; j++)
+                {
+                    signatureFragment[i * 243 + j] = hash[j];
+                }
+            }
+
+            return signatureFragment;
+
+        }
+
+        public bool ValidateSignatures(string expectedAddress, sbyte[] signatureFragments, string bundleHash)
+        {
+            if (string.IsNullOrWhiteSpace(bundleHash))
+                throw new ArgumentNullException(nameof(bundleHash));
+
+            var bundle = new Bundle();
+
+            var normalizedBundleFragments = new List<int[]>(3);
+            var normalizedBundleHash = TransactionExtensions.NormalizedBundle(bundleHash);
+
+            // Split hash into 3 fragments
+            for (var i = 0; i < 3; i++)
+            {
+                normalizedBundleFragments[i] = normalizedBundleHash.Slice(i * 27, (i + 1) * 27);
+            }
+
+            // Get digests
+            var digests = new sbyte[signatureFragments.Length * 243];
+
+            for (var i = 0; i < signatureFragments.Length; i++)
+            {
+
+                var digestBuffer = Digest(normalizedBundleFragments[i % 3], Converter.GetTrits(signatureFragments[i]));
+
+                for (var j = 0; j < 243; j++)
+                {
+                    digests[i * 243 + j] = digestBuffer[j];
+                }
+            }
+
+            var address = Converter.GetTrytes(Address(digests));
+
+            return (expectedAddress == address);
         }
     }
 }

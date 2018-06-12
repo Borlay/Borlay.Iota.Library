@@ -4,6 +4,7 @@ using System.Text;
 
 namespace Borlay.Iota.Library.Utils
 {
+    /*
     /// <summary>
     /// This interface abstracts the curl hashing algorithm
     /// </summary>
@@ -66,5 +67,5 @@ namespace Borlay.Iota.Library.Utils
         /// The state.
         /// </value>
         int[] State { get; set; }
-    }
+    }*/
 }

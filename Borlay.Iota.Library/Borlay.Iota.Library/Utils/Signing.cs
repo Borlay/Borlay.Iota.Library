@@ -8,6 +8,7 @@ using System.Threading;
 
 namespace Borlay.Iota.Library.Utils
 {
+    /*
     /// <summary>
     /// Ask cfb
     /// </summary>
@@ -204,5 +205,5 @@ namespace Borlay.Iota.Library.Utils
 
             return (expectedAddress.Equals(address));
         }
-    }
+    }*/
 }
