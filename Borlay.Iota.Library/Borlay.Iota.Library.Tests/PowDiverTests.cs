@@ -21,12 +21,12 @@ namespace Borlay.Iota.Library.Tests
 
 
 
-            var intxTrits = Library.Utils.Converter.ToTrits(AddAproveeTransactions(intx, trunk, branch));
+            var intxTrits = Library.Crypto.Converter.GetTrits(AddAproveeTransactions(intx, trunk, branch));
 
             var diver = new PowDiver();
             await diver.search(intxTrits, 15, 1);
 
-            var resultTrytes = Utils.Converter.ToTrytes(intxTrits);
+            var resultTrytes = Crypto.Converter.GetTrytes(intxTrits);
 
             Assert.Equals(outtx, resultTrytes);
         }
@@ -41,12 +41,12 @@ namespace Borlay.Iota.Library.Tests
 
 
 
-            var intxTrits = Library.Utils.Converter.ToTrits(intx);//AddAproveeTransactions(intx, trunk, branch));
+            var intxTrits = Library.Crypto.Converter.GetTrits(intx);//AddAproveeTransactions(intx, trunk, branch));
 
             var diver = new PowDiver();
             await diver.search(intxTrits, 15, 1);
 
-            var resultTrytes = Utils.Converter.ToTrytes(intxTrits);
+            var resultTrytes = Crypto.Converter.GetTrytes(intxTrits);
 
             Assert.AreEqual(intx, resultTrytes);
         }
@@ -59,12 +59,12 @@ namespace Borlay.Iota.Library.Tests
             string trunk = "SCPPYKCIEEHMARSMMXFSTEYAUBHOZKZJBLIUXUWQPBWTDHJHAOEDBZNGBBTVJLRMVWTVHCKFLIVP99999";
             string branch = "ZKQRBCTRVNWEJZOVQOJFACQYDBLTLYTNL9RHICEZGMLFRRHZEHHPXYNQXPMORPXOVGGMBPTVQPDB99999";
 
-            var intxTrits = Library.Utils.Converter.ToTrits(intx);//AddAproveeTransactions(intx, trunk, branch));
+            var intxTrits = Library.Crypto.Converter.GetTrits(intx);//AddAproveeTransactions(intx, trunk, branch));
 
             var diver = new PowDiver();
             await diver.search(intxTrits, 15, 1);
 
-            var resultTrytes = Utils.Converter.ToTrytes(intxTrits);
+            var resultTrytes = Crypto.Converter.GetTrytes(intxTrits);
 
             //Assert.AreEqual(intx, resultTrytes);
         }
@@ -77,12 +77,12 @@ namespace Borlay.Iota.Library.Tests
             string trunk = "9DZFMVYCUCNZEGBKHWDGAEMSZIRCUCFUQZYYPZUBSEQQPQDYEMIWIATPBXF9EHCGOJBNQMXJIASX99999";
             string branch = "DWDRGMMCABHLQU9WSIAZJZLOMFRHEIUMRBVVSKRYRCNT9ZS9XVPQYQLH9PLMWISNBMPRIILVLIPM99999";
 
-            var intxTrits = Library.Utils.Converter.ToTrits(intx);//AddAproveeTransactions(intx, trunk, branch));
+            var intxTrits = Library.Crypto.Converter.GetTrits(intx);//AddAproveeTransactions(intx, trunk, branch));
 
             var diver = new PowDiver();
             await diver.search(intxTrits, 15, 1);
 
-            var resultTrytes = Utils.Converter.ToTrytes(intxTrits);
+            var resultTrytes = Crypto.Converter.GetTrytes(intxTrits);
 
             Assert.AreEqual(intx, resultTrytes);
         }
@@ -95,12 +95,12 @@ namespace Borlay.Iota.Library.Tests
             string trunk = "BLODDZEPD9NWLVQIFPHQFMFVDCCQUULAMNUHTCUNMOAZIWZWPPN9EHT9XEKQAFVMUHMNWDFK9WGE99999";
             string branch = "WBQTVAX9SRKGDAZHPXNPUERAUKSETFYM9ILJWQMSAADIFX9HQCMLTQMOSQU9NCZRTPJPZSFVNOXS99999";
 
-            var intxTrits = Library.Utils.Converter.ToTrits(intx);//AddAproveeTransactions(intx, trunk, branch));
+            var intxTrits = Library.Crypto.Converter.GetTrits(intx);//AddAproveeTransactions(intx, trunk, branch));
 
             var diver = new PowDiver();
             await diver.search(intxTrits, 15, 1);
 
-            var resultTrytes = Utils.Converter.ToTrytes(intxTrits);
+            var resultTrytes = Crypto.Converter.GetTrytes(intxTrits);
 
             //Assert.AreEqual(intx, resultTrytes);
         }

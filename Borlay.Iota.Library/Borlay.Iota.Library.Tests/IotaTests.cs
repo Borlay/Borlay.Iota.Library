@@ -486,7 +486,7 @@ namespace Borlay.Iota.Library.Tests
         {
             var api = CreateIotaClient();
 
-            var address = await api.GetAddress("randomseedopalaskdjf".ToUpper(), 0);
+            var address = await api.GetAddress("lsdfiejlasdnfuhafoasdfkl".ToUpper(), 0);
             Assert.IsNotNull(address);
             Assert.AreEqual(0, address.Index);
             Assert.AreEqual(0, address.Balance);
@@ -501,7 +501,8 @@ namespace Borlay.Iota.Library.Tests
             // "http://88.198.230.98:14265"
             // "http://iota.digits.blue:14265"
             // http://eugeneoldisoft.iotasupport.com:14265
-            return new IotaApi("http://iota.bitfinex.com:80");
+            return new IotaApi("http://node.iotawallet.info:14265");
+            //return new IotaApi("http://iota.bitfinex.com:80");
         }
 
         private IEnumerable<string> BroadcastUrls()
